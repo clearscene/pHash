@@ -1,0 +1,10 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: pHash
+Description: Perceptual hashing library
+Version: 0.9.3
+Libs: -L${libdir} -lpHash -lm
+Cflags: -I${includedir}
