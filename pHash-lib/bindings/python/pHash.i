@@ -81,16 +81,25 @@ typedef uint32_t off_t;
 //%apply uint64_t { ulong64 };   
 
 
-
 %module pHash
 %{
 #include "pHash.h"
 
 %}
 
+/*
+typedef struct ph_hash_point {
+    ulong64 hash;
+    off_t index; 
+} TxtHashPoint;
 
+typedef struct ph_match{
+    off_t first_index; 
+    off_t second_index;
+    uint32_t length;   
+} TxtMatch;
 
-
+*/
 
 /*
 
@@ -131,6 +140,8 @@ void f(double* a, int n)
 We  declare INPUT and OUTPUT parameters.
 Output parameters are not longer args, but part of the return value tuple/sequence. 
 */
+
+//%apply int *OUTPUT { int *rows, int *columns };
 
 
 int ph_radon_projections(const CImg<uint8_t> &INPUT,int N,Projections &OUTPUT);
@@ -176,24 +187,92 @@ typemap(out0) type*... impacts the pointer constructor... no good.
     printf("arg5 value is %d\n",*arg5);
     for(i=0; i< *arg5; i++ ) {
       //PyList_Append(list,$1[i]);
-		  PyList_SetItem(list,$1[i]);
+		  PyList_SetItem(list,i, *** Object $1[i]);
 		}
     $result=list;
 }
 */
 
 /*
+you can specify the function name for the typemap
+
+http://thread.gmane.org/gmane.comp.programming.swig/12727/focus=12729
+
+we can have different typemaps
+*/
+
+//%typemap(out, null="NULL") TxtHashPoint * TxtHashPoint %{ $result = $1; %}
+
+/* we just have to find a way to make a PyObject from a TxtHashPoint  
+SWIG_NewPointerObj(SWIG_as_voidptr(p_data), SWIGTYPE_p_tMyStruct, SWIG_SHADOW)
+http://old.nabble.com/C-%3EPerl-%3A-converting-C-array-into-perl-string.-td26642428.html
+
+http://permalink.gmane.org/gmane.comp.programming.swig/16209
+
+*/
+
+/*
+%typemap(out) TxtHashPoint * ph_texthash {
+    PyObject *list = PyList_New(*arg2);
+    int i =0;
+    printf("arg5 value is %d\n",*arg2);
+    for(i=0; i< *arg2; i++ ) {
+      //  PyList_Append(list,$1[i]);
+      swig_o=SWIG_NewPointerObj(SWIG_as_voidptr($1[i]), SWIGTYPE_p_tTxtHashPoint, SWIG_SHADOW)
+		  //PyList_SetItem(list,i, list) ;//(PyObject *) $1[i]);
+		  PyList_SetItem(list,i, swig_o ) ;
+
+		}
+    $result=list;
+}
+*/
+
+/*
+trying with a helper function...
+%{
+
+void ph_texthash_List(const char *filename, TxtHashPoint* list, int *nb ){
+    TxtHashPoint * ret=0;
+    ret=ph_texthash(filename, nb);
+    list=ret;
+    //return ret;
+    return;
+}
+
+%}
+
+
+//void ph_texthash_List(const char *filename, int *OUTPUT);
+//TxtHashPoint[] ph_texthash_List(const char *filename, int *OUTPUT);
+void ph_texthash_List(const char *filename, TxtHashPoint* OUTPUT, int *OUTPUT );
+*/
+
+/*
 The easiest way should be to write a full Class aroud thoses...
 */
 
-%array_functions(TxtHashPoint,TxtHashPointArray)
-%array_functions(TxtMatch,TxtMatchArray)
 
-//%array_class(TxtHashPoint,TxtHashPointArray);
+
+// TxtHashPointArray functions give garbled memory 
+%array_functions(TxtHashPoint,TxtHashPointArray)
+//%array_functions(TxtMatch,TxtMatchArray)
+
+// TxtHashPointArrayIn_frompointer give garbled memory too, but easiest too use.
+%array_class(TxtHashPoint,TxtHashPointArrayIn);
 //%array_class(TxtMatch,TxtMatchArray);
+
+//useless
+%pointer_functions(TxtHashPoint,TxtHashPointPtr);
+
+%newobject ph_texthash;
 
 TxtHashPoint* ph_texthash(const char *filename, int *OUTPUT);
 TxtMatch* ph_compare_text_hashes(TxtHashPoint *INPUT, int N1, TxtHashPoint *INPUT, int N2, int *OUTPUT);
+
+
+//%typemap(out) TxtHashPoint * ;
+%clear TxtHashPoint * ;
+
 
 /* todo */
 ulong64* ph_dct_videohash(const char *filename, int &OUTPUT);
@@ -203,26 +282,12 @@ char** ph_readfilenames(const char *dirname,int &OUTPUT);
 DP* ph_read_datapoint(MVPFile *INPUT);
 
 
-
-
-
-
 /* http://thread.gmane.org/gmane.comp.programming.swig/12746/focus=12747 */
 namespace cimg_library {}
 
 
-
-
-
 /* probleme sur primary-expression */  
 %include "pHash.h" 
-
-
-
-
-
-
-
 
 
 
