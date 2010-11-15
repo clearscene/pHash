@@ -34,6 +34,9 @@ see swig autorun automake ... http://realmike.org/python/swig_linux.htm
 %include "cpointer.i"
 %include "carrays.i"
 %include "cmalloc.i"
+// basic typedef ... 
+%include "stdint.i"
+%include "windows.i"
 
 %exception {
 	try {
@@ -197,13 +200,20 @@ DP* ph_read_datapoint(MVPFile *INPUT);
 %pointer_functions(uint64_t, uint64_tp);
 %pointer_functions(ulong64, ulong64p);
 
+%apply long { off_t };   
+
+//%apply int { uint32_t };   
+
 /* functions pour ph_digest & Digest */
 %pointer_functions(uint8_t, uint8_tp);
 %array_functions(uint8_t,uint8_tArray);
 %free(uint8_t);
 
+//%pointer_functions(uint32_t, uint32_tp);
+//%array_functions(uint32_t,uint32_tArray);
+//%free(uint32_t);
 
-
+//%naturalvar uint32_t;
 
 /* http://thread.gmane.org/gmane.comp.programming.swig/12746/focus=12747 */
 namespace cimg_library {}

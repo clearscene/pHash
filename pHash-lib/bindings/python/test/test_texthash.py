@@ -57,7 +57,16 @@ class Text:
     if len(res) != 2 :
       return None
     (pointsPtr,nb)=res
+    item=pointsPtr
+    print 'index:',item.index,'hash:',item.hash 
+    print '-----------------'   
     ret=[ pHash.TxtHashPointArray_getitem(pointsPtr, ind) for ind in range(0,nb,1)]
+    #for ind in range(0,nb,1):
+      #item=pHash.TxtHashPointArray_getitem(pointsPtr, ind) 
+      #print 'item :',item
+      #print 'hash',item.hash
+      #print 'index',item.index
+      #print 'index:',item.index,'hash:',item.hash    
     return ret
   ''' '''
   def compare(self,hashPoints1,hashPoints2):
@@ -80,6 +89,11 @@ class Text:
     (matchesPtr,nb)=res
     print (matchesPtr,nb)
     ret=[ pHash.TxtMatchArray_getitem(matchesPtr, ind) for ind in range(0,nb,1)]
+    #print ' pointer ? ' ,   matchesPtr.lenght
+    #for ind in range(0,nb,1):
+    #  item=pHash.TxtMatchArray_getitem(matchesPtr, ind) 
+    #  print 'item :',item
+    #  print 'length',item.length
     return ret
 
 
@@ -102,50 +116,38 @@ def main(argv):
     file1 = argv[0]
     file2 = argv[1]
 
-    names,nb=pHash.ph_readfilenames(os.path.dirname(file1))
-    print names,nb
+    #names,nb=pHash.ph_readfilenames(os.path.dirname(file1))
+    #print names,nb
 
-    print "file1: %s" %(file1)
-    # new way
-    hash1,nbhashes1=pHash.ph_texthash(file1)
-    if ( hash1 is None):
-      print "Unable to complete text hash function"
-      return
-    print "length %d"%(nbhashes1)
-    
-    print "file2: %s" %(file2)
-    hash2,nbhashes2=pHash.ph_texthash(file2)
-    if ( hash2 is None):
-      print "Unable to complete text hash function"
-      return
-    print "length %d"%(nbhashes2)
     
     # new style
     text=Text()
+    #print "file1: %s" %(file1)
     h1=text.makeHash(file1)
     if ( h1 is None):
       print "Unable to complete text hash function"
       return
-    print "length %d"%(len(h1))
+    #print "length %d"%(len(h1))
     
     h2=text.makeHash(file2)
-    matches=text.compare(h1,h2)
-    print 'matches ',matches
-        
-    count=0
-    matches,count=pHash.ph_compare_text_hashes(hash1, nbhashes1, hash2, nbhashes2)
+    #print "file2: %s" %(file2)
+    if ( h2 is None):
+      print "Unable to complete text hash function"
+      return
+    #print "length %d"%(len(h2))
     
-    if (count == 0):
+    matches=text.compare(h1,h2)
+    #print 'matches ',matches
+        
+    if (matches is None or len(matches) == 0):
       print "unable to complete compare function"
       return
     
+    count=len(matches)
     print " %d matches"%(count)
     print " indxA  indxB  length"
     for j in range(0,count,1):
-      print "matches",matches
-      print "matches[j]",matches[j]
-      print "matches[j].first_index",matches[j].first_index
-      print " %d %d %d"&( matches[j].first_index, matches[j].second_index,matches[j].length) 
+      print " %d %d %d"%( matches[j].first_index, matches[j].second_index,matches[j].length) 
     return 
   except Exception,e:
     print e
