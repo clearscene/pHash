@@ -58,15 +58,15 @@ class Text:
       return None
     (pointsPtr,nb)=res
     item=pointsPtr
-    print 'index:',item.index,'hash:',item.hash 
+    #print 'index:',item.index,'hash:',item.hash 
     print '-----------------'   
     ret=[ pHash.TxtHashPointArray_getitem(pointsPtr, ind) for ind in range(0,nb,1)]
-    #for ind in range(0,nb,1):
-      #item=pHash.TxtHashPointArray_getitem(pointsPtr, ind) 
+    for ind in range(0,nb,1):
+      item=pHash.TxtHashPointArray_getitem(pointsPtr, ind) 
       #print 'item :',item
       #print 'hash',item.hash
       #print 'index',item.index
-      #print 'index:',item.index,'hash:',item.hash    
+      print 'hash:',item.hash,'index:',item.index    
     return ret
   ''' '''
   def compare(self,hashPoints1,hashPoints2):
@@ -97,6 +97,19 @@ class Text:
     return ret
 
 
+class Image:
+  ''' '''
+  def makeHash(self,filename):
+    '''WORKING
+    int ph_dct_imagehash(const char* file,ulong64 &OUTPUT); '''
+    res=pHash.ph_dct_imagehash(filename)
+    if len(res) != 2 :
+      return None
+    ret,myHash=res
+    print myHash
+    return myHash
+
+
 def main(argv):
   '''
   '''
@@ -118,7 +131,10 @@ def main(argv):
 
     #names,nb=pHash.ph_readfilenames(os.path.dirname(file1))
     #print names,nb
-
+    img='/home/jal/Pictures/test.jpg'
+    image=Image()
+    image.makeHash(img)
+    return
     
     # new style
     text=Text()

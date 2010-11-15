@@ -69,12 +69,27 @@ see swig autorun automake ... http://realmike.org/python/swig_linux.htm
 %ignore _ph_query_mvptree;
 %ignore ph_getKeyFramesFromVideo;
 
+/* -------------------------- std */
+
+typedef uint32_t off_t;
+
+//KO typedef uint64t ulong64;
+//typedef  unsigned int ulong64;
+
+//%apply uint32_t { off_t };   
+
+//%apply uint64_t { ulong64 };   
+
+
 
 %module pHash
 %{
 #include "pHash.h"
 
 %}
+
+
+
 
 
 /*
@@ -125,6 +140,7 @@ int ph_crosscorr(const Digest &INPUT,const Digest &INPUT,double &INPUT, double t
 int _ph_image_digest(const CImg<uint8_t> &INPUT,double sigma, double gamma,Digest &OUTPUT,int N=180);
 int ph_image_digest(const char *file, double sigma, double gamma, Digest &OUTPUT,int N=180);
 int ph_compare_images(const char *file1, const char *file2,double &OUTPUT, double sigma = 3.5, double gamma=1.0, int N=180,double threshold=0.90);
+// TESTED OK
 int ph_dct_imagehash(const char* file,ulong64 &OUTPUT);
 int ph_sizeof_dp(DP *INPUT,MVPFile *INPUT);
 double ph_dct_videohash_dist(ulong64 *INPUT, int N1, ulong64 *INPUT, int N2, int threshold=21);
@@ -190,62 +206,12 @@ DP* ph_read_datapoint(MVPFile *INPUT);
 
 
 
-/* -------------------------- std */
-
-/* Create some functions for working with "double *" */
-%pointer_functions(double, doublep);
-
-/* Create some functions for working with "int *" */
-%pointer_functions(int, intp);
-%pointer_functions(uint64_t, uint64_tp);
-%pointer_functions(ulong64, ulong64p);
-
-%apply long { off_t };   
-
-//%apply int { uint32_t };   
-
-/* functions pour ph_digest & Digest */
-%pointer_functions(uint8_t, uint8_tp);
-%array_functions(uint8_t,uint8_tArray);
-%free(uint8_t);
-
-//%pointer_functions(uint32_t, uint32_tp);
-//%array_functions(uint32_t,uint32_tArray);
-//%free(uint32_t);
-
-//%naturalvar uint32_t;
 
 /* http://thread.gmane.org/gmane.comp.programming.swig/12746/focus=12747 */
 namespace cimg_library {}
 
-/* %ignore mvptag; */
 
 
-
-
-/*
-%define vector_typemap(T)
-%typemap(python,out) vector<T *> *, vector<T *> &{ 
- $target = PyList_New(0);
- if($source){
-    for(vector<T *>::iterator i=$source->begin();
-              i!=$source->end();i++){
-       PyObject *o=SWIG_NewPointerObj((void *)(*i), SWIGTYPE_p_##T);
-       PyList_Append($target,o);
-       Py_XDECREF(o);
-    }                       
-    //delete $source; //depends on your code
- }
-}
-%enddef
-
-vector_typemap(TxtMatch);
-
-
-*/
-
-
-%apply long { off_t };   
 
 
 /* probleme sur primary-expression */  
