@@ -1,6 +1,23 @@
 # -*- coding: utf-8 -*-
+
+#
+#
+#
+#swig -classic -I../../src/ -I/usr/include -c++ -python -o pHash_wrap.cpp pHash.i
+#$ python setup.py build_ext --inplace
+
+
 from setuptools import setup
 from glob import glob
+
+from distutils.core import setup, Extension
+
+pHash_module = Extension('_pHash',
+                           libraries = ['pHash'],
+                           sources=['pHash_wrap.cpp'],
+                           )
+
+
 
 setup(name="pHash",
     version="1.0",
@@ -23,6 +40,7 @@ Python Bindings for pHash perceptual comparaison library
     keywords=['pHash','libphash'],
     author="Loic Jaquemet",
     author_email="loic.jaquemet+python@gmail.com",
+    ext_modules = [pHash_module],
     py_modules = ["pHash"], 
 #    extras_require = {
 #        'CACHE':  ["python-memcached"],
