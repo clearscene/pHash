@@ -27,6 +27,61 @@ import pHash
 import locale,logging,os,sys,time
 
 
+'''
+TxtHashPoint* ph_texthash(const char *filename, int *OUTPUT);
+TxtMatch* ph_compare_text_hashes(TxtHashPoint *INPUT, int N1, TxtHashPoint *INPUT, int N2, int *OUTPUT);
+
+TxtHashPoint { item,index}
+
+
+optimized version is :
+
+    res1=pHash.ph_texthash(filename1)
+    (points1Ptr,nb1)=res1
+
+    res2=pHash.ph_texthash(filename2)
+    (points1Ptr,nb2)=res2
+
+    res=pHash.ph_compare_text_hashes(points1Ptr,nb1,points2Ptr,nb2)
+
+    matches=Text.makeTxtMatchList(res)
+
+'''
+class Text:
+  ''' '''
+  def makeHash(self,filename):
+    res=pHash.ph_texthash(filename)
+    return self.makeTxtHashPointList(res)
+  #
+  def makeTxtHashPointList(self,res):
+    if len(res) != 2 :
+      return None
+    (pointsPtr,nb)=res
+    ret=[ pHash.TxtHashPointArray_getitem(pointsPtr, ind) for ind in range(0,nb,1)]
+    return ret
+  ''' '''
+  def compare(self,hashPoints1,hashPoints2):
+    ''' make C arrays '''
+    nb1=len(hashPoints1)
+    nb2=len(hashPoints2)
+    hashes1=pHash.new_TxtHashPointArray(nb1)
+    hashes2=pHash.new_TxtHashPointArray(nb2)
+    for i in range(0,nb1):
+      pHash.TxtHashPointArray_setitem(hashes1,i,hashPoints1[i])
+    for i in range(0,nb2):
+      pHash.TxtHashPointArray_setitem(hashes2,i,hashPoints2[i])
+    # go
+    res=pHash.ph_compare_text_hashes(hashes1,nb1,hashes2,nb2)
+    return self.makeTxtMatchList(res)
+  #
+  def makeTxtMatchList(self, res):
+    if len(res) != 2 :
+      return None
+    (matchesPtr,nb)=res
+    print (matchesPtr,nb)
+    ret=[ pHash.TxtMatchArray_getitem(matchesPtr, ind) for ind in range(0,nb,1)]
+    return ret
+
 
 def main(argv):
   '''
@@ -65,7 +120,18 @@ def main(argv):
       return
     print "length %d"%(nbhashes2)
     
+    # new style
+    text=Text()
+    h1=text.makeHash(file1)
+    if ( h1 is None):
+      print "Unable to complete text hash function"
+      return
+    print "length %d"%(len(h1))
     
+    h2=text.makeHash(file2)
+    matches=text.compare(h1,h2)
+    print 'matches ',matches
+        
     count=0
     matches,count=pHash.ph_compare_text_hashes(hash1, nbhashes1, hash2, nbhashes2)
     

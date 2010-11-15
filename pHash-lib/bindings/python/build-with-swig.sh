@@ -51,40 +51,47 @@
 
 PYTHONINC=`python-config --includes`
 
-rm -f pHash.py pHash.pyc pHash_wrap.cpp pHash_wrap.o
+  echo "cleaning"
+  rm -f pHash.py pHash.pyc pHash_wrap.cpp pHash_wrap.o _pHash.so
+  python setup.py clean -a
 
-echo " swigging.... "
-swig -classic -I../../src/ -I/usr/include -c++ -python -o pHash_wrap.cpp pHash.i
-if [ $? -ne 0 ]; then
- exit 1
-fi
+  echo " swigging.... "
+  swig -classic -I../../src/ -I/usr/include -c++ -python -o pHash_wrap.cpp pHash.i
+  if [ $? -ne 0 ]; then
+   exit 1
+  fi
 
-echo "building ..."
-gcc -fPIC $PYTHONINC -I../../src/ -c pHash_wrap.cpp -o pHash_wrap.o
-if [ $? -ne 0 ]; then
- exit 1
-fi
+#echo "building ..."
+#gcc -fPIC $PYTHONINC -I../../src/ -c pHash_wrap.cpp -o pHash_wrap.o
+#if [ $? -ne 0 ]; then
+# exit 1
+#fi
 
 #OBJECTS="../../src/audiophash.o  ../../src/cimgffmpeg.o  ../../src/pHash.o  ../../src/ph_fft.o"
-OBJECTS=""
+#OBJECTS=""
 
-echo "making lib" 
-g++ -shared pHash_wrap.o $OBJECTS -lpHash -o _pHash.so
-if [ $? -ne 0 ]; then
- exit 1
-fi
+#echo "making lib" 
+#g++ -shared pHash_wrap.o $OBJECTS -lpHash -o _pHash.so
+#if [ $? -ne 0 ]; then
+# exit 1
+#fi
 
-echo "testing "
-python -c  '
+  echo "building ..."
+  #python setup.py build 
+
+
+  echo "testing "
+  export LD_LIBRARY_PATH=./build/lib.linux-i686-2.6/
+  python -c  '
 import pHash
 print pHash.ph_about()
 '
-if [ $? -ne 0 ]; then
- exit 1
-fi
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
 
-echo 'install'
+  echo 'install'
 # sudo python setup.py install
 # need copy _pHash.so into the egg install...
-cp pHash.py _pHash.so /usr/local/lib/python2.5/site-packages/
-
+#cp pHash.py _pHash.so /usr/local/lib/python2.5/site-packages/
+#sudo python setup.py install
