@@ -51,7 +51,7 @@
 
 PYTHONINC=`python-config --includes`
 # changes first hashes size on Texthashes
-CFLAGS=-g -pthread -O2 -ffast-math -O3  -fpic
+CFLAGS=-g -pthread -O2 -ffast-math -O3  -fPIC -DPIC
 
 
 #try:
@@ -99,7 +99,7 @@ pHash_wrap.o: pHash_wrap.cpp
 	gcc -fPIC ${PYTHONINC} ${CFLAGS} -I../../src/ -c pHash_wrap.cpp -o pHash_wrap.o
 
 _pHash.so: pHash_wrap.o
-	g++ ${CFLAGS} -shared pHash_wrap.o ${OBJECTS} -lpHash -o _pHash.so
+	g++ ${CFLAGS} -shared pHash_wrap.o ${OBJECTS} -Wl,-soname,_pHash.so.1 -lpHash -o _pHash.so
 
 .test:
 	

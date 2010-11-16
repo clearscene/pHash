@@ -290,5 +290,17 @@ namespace cimg_library {}
 %include "pHash.h" 
 
 
+/* from http://www.swig.org/papers/PyTutorial97/PyTutorial97.pdf p75 */
+%extend TxtHashPoint {
+  TxtHashPoint *__getitem__(int index)  {
+      return (self+index);
+  }
+}
+
+%extend TxtMatch {
+  TxtMatch *__getitem__(int index)  {
+      return (self+index);
+  }
+}
 
 

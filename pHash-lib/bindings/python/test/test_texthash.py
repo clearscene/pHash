@@ -62,8 +62,8 @@ class Text:
       return None
     (pointsPtr,nb)=res
     #item=pHash.TxtHashPointPtr_value(pointsPtr)
-    #items=pointsPtr
-    items=pHash.TxtHashPointArrayIn_frompointer(pointsPtr)
+    items=pointsPtr
+    #items=pHash.TxtHashPointArrayIn_frompointer(pointsPtr)
     print 'items :',items
     #print 'item.this :',item.this
     #help(item.this)
@@ -81,8 +81,8 @@ class Text:
       #print 'ptr', ptr
       #item=pHash.TxtHashPointPtr_value(ptr.this)
       item=items[ind]
-      print 'item :',item
-      #print 'index:',item.index,'hash:',item.hash 
+      #print 'item :',item
+      print 'index:',item.index,'hash:',item.hash 
       #print 'item : %d'%(int(item))
       #print 'hash',item.hash
       #print 'index',item.index
