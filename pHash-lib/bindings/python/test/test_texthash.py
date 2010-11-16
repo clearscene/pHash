@@ -19,8 +19,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#    Evan Klinger - eklinger@phash.org
-#    David Starkweather - dstarkweather@phash.org
+#    Loic Jaquemet - loic.jaquemet+phash@gmail.com
 #
 
 import pHash
@@ -30,6 +29,11 @@ import locale,logging,os,sys,time
 '''
 TxtHashPoint* ph_texthash(const char *filename, int *OUTPUT);
 TxtMatch* ph_compare_text_hashes(TxtHashPoint *INPUT, int N1, TxtHashPoint *INPUT, int N2, int *OUTPUT);
+
+
+char** ph_readfilenames(const char *dirname,int &OUTPUT);
+
+
 
 TxtHashPoint { item,index}
 
@@ -81,14 +85,17 @@ class Text:
       #print 'ptr', ptr
       #item=pHash.TxtHashPointPtr_value(ptr.this)
       item=items[ind]
+      #print 'me :', item.printme()
+      #print 'ptr :', items.printptr(ind)
       #print 'item :',item
-      print 'index:',item.index,'hash:',item.hash 
+      #print 'index:',item.index,'hash:',item.hash 
       #print 'item : %d'%(int(item))
       #print 'hash',item.hash
       #print 'index',item.index
       #print 'hash: %016X(%016d) \t index: %08X(%d)'%(item.hash,item.hash,item.index,item.index  )
-      #print 'hash+index: %08.16X %04.8X'%(item.hash,item.index  )
+      #print 'hash+index: %0.16X %0.8X'%(item.hash,item.index  )
       #print '%04.8X %08.16X '%(item.index,item.hash  )
+      print 'hash+index: %d %d '%(item.hash,item.index  )
     return ret
   ''' '''
   def compare(self,hashPoints1,hashPoints2):
@@ -118,10 +125,26 @@ class Text:
     #  print 'length',item.length
     return ret
 
+'''
+int ph_radon_projections(const CImg<uint8_t> &INPUT,int N,Projections &OUTPUT);
+int ph_feature_vector(const Projections &INPUT,Features &OUTPUT);
+int ph_dct(const Features &INPUT, Digest &OUTPUT);
+int ph_crosscorr(const Digest &INPUT,const Digest &INPUT,double &INPUT, double threshold = 0.90);
 
+int _ph_image_digest(const CImg<uint8_t> &INPUT,double sigma, double gamma,Digest &OUTPUT,int N=180);
+int ph_image_digest(const char *file, double sigma, double gamma, Digest &OUTPUT,int N=180);
+int ph_compare_images(const char *file1, const char *file2,double &OUTPUT, double sigma = 3.5, double gamma=1.0, int N=180,double threshold=0.90);
+
+DP** ph_read_imagehashes(const char *dirname,int capacity, int &OUTPUT);
+uint8_t* ph_mh_imagehash(const char *filename, int &OUTPUT, float alpha=2.0f, float lvl = 1.0f);
+
+// TESTED OK
+int ph_dct_imagehash(const char* file,ulong64 &OUTPUT);
+
+'''
 class Image:
   ''' '''
-  def makeHash(self,filename):
+  def makeDctHash(self,filename):
     '''WORKING
     int ph_dct_imagehash(const char* file,ulong64 &OUTPUT); '''
     res=pHash.ph_dct_imagehash(filename)
@@ -130,6 +153,31 @@ class Image:
     ret,myHash=res
     print myHash
     return myHash
+
+'''
+double ph_dct_videohash_dist(ulong64 *INPUT, int N1, ulong64 *INPUT, int N2, int threshold=21);
+ulong64* ph_dct_videohash(const char *filename, int &OUTPUT);
+'''
+class Video:
+  ''' '''
+  def __init__(self):
+    pass 
+
+'''
+int ph_sizeof_dp(DP *INPUT,MVPFile *INPUT);
+off_t ph_save_datapoint(DP *INPUT, MVPFile *INPUT);
+DP* ph_read_datapoint(MVPFile *INPUT);
+double ph_hammingdistance2(uint8_t *INPUT, int lenA, uint8_t *INPUT, int lenB);
+float hammingdistance(DP *INPUT, DP *INPUT);
+
+MVPRetCode ph_query_mvptree(MVPFile *INPUT, DP *INPUT, int knearest, float radius,
+		float threshold,   DP **OUTPUT, int &OUTPUT);
+MVPRetCode ph_save_mvptree(MVPFile *INPUT, DP **INPUT, int nbpoints);
+MVPRetCode ph_add_mvptree(MVPFile *INPUT, DP **INPUT, int nbpoints, int &OUTPUT);
+
+'''
+class MVP:
+  ''' '''
 
 
 def main(argv):
@@ -142,6 +190,9 @@ def main(argv):
   logging.basicConfig(level=logging.DEBUG)
 	
   print pHash.ph_about()
+  print pHash.print_sizeof_off_t()
+  
+  #return
   
   if(len(argv)<2):
     print "not enough input args" 

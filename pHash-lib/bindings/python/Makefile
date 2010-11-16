@@ -51,7 +51,7 @@
 
 PYTHONINC=`python-config --includes`
 # changes first hashes size on Texthashes
-CFLAGS=-g -pthread -O2 -ffast-math -O3  -fPIC -DPIC
+CFLAGS=-g -pthread -O2 -ffast-math -O3  -fPIC -DPIC 
 
 
 #try:
