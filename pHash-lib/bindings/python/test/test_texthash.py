@@ -51,22 +51,44 @@ class Text:
   ''' '''
   def makeHash(self,filename):
     res=pHash.ph_texthash(filename)
+    #res=0
+    #print pHash.ph_texthash_List(filename,res)
+    #print '------ makeHash :',res
     return self.makeTxtHashPointList(res)
   #
   def makeTxtHashPointList(self,res):
     if len(res) != 2 :
+      print 'err: return args:', res
       return None
     (pointsPtr,nb)=res
-    item=pointsPtr
+    #item=pHash.TxtHashPointPtr_value(pointsPtr)
+    #items=pointsPtr
+    items=pHash.TxtHashPointArrayIn_frompointer(pointsPtr)
+    print 'items :',items
+    #print 'item.this :',item.this
+    #help(item.this)
+    #print 'item.this.index :',item.this.index
     #print 'index:',item.index,'hash:',item.hash 
-    print '-----------------'   
-    ret=[ pHash.TxtHashPointArray_getitem(pointsPtr, ind) for ind in range(0,nb,1)]
-    for ind in range(0,nb,1):
-      item=pHash.TxtHashPointArray_getitem(pointsPtr, ind) 
-      #print 'item :',item
+    #print 'items : ',items
+    #print 'index:',item.index,'hash:',item.hash 
+    #print help(item)
+    print '----------------- '   , (nb)
+    ret=0
+    #ret=[ pHash.TxtHashPointArray_getitem(pointsPtr, ind) for ind in range(0,nb,1)]
+    for ind in range(0,nb):
+      #print 'ind: ',ind
+      #ptr=pHash.TxtHashPointArray_getitem(items, ind)
+      #print 'ptr', ptr
+      #item=pHash.TxtHashPointPtr_value(ptr.this)
+      item=items[ind]
+      print 'item :',item
+      #print 'index:',item.index,'hash:',item.hash 
+      #print 'item : %d'%(int(item))
       #print 'hash',item.hash
       #print 'index',item.index
-      print 'hash:',item.hash,'index:',item.index    
+      #print 'hash: %016X(%016d) \t index: %08X(%d)'%(item.hash,item.hash,item.index,item.index  )
+      #print 'hash+index: %08.16X %04.8X'%(item.hash,item.index  )
+      #print '%04.8X %08.16X '%(item.index,item.hash  )
     return ret
   ''' '''
   def compare(self,hashPoints1,hashPoints2):
@@ -131,10 +153,10 @@ def main(argv):
 
     #names,nb=pHash.ph_readfilenames(os.path.dirname(file1))
     #print names,nb
-    img='/home/jal/Pictures/test.jpg'
-    image=Image()
-    image.makeHash(img)
-    return
+    #img='/home/jal/Pictures/test.jpg'
+    #image=Image()
+    #image.makeHash(img)
+    #return
     
     # new style
     text=Text()
@@ -144,6 +166,8 @@ def main(argv):
       print "Unable to complete text hash function"
       return
     #print "length %d"%(len(h1))
+    
+    return
     
     h2=text.makeHash(file2)
     #print "file2: %s" %(file2)

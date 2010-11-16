@@ -50,6 +50,15 @@
 #
 
 PYTHONINC=`python-config --includes`
+# changes first hashes size on Texthashes
+CFLAGS=-g -pthread -O2 -ffast-math -O3  -fpic
+
+
+#try:
+#	gcc -c swig -classic -I../../src/ -I/usr/include -c++ -python -o test_wrap.cpp test.i
+#	swig -classic -I../../src/ -I/usr/include -c++ -python -o test_wrap.cpp test.i
+#	gcc -fPIC ${PYTHONINC} ${CFLAGS} -I../../src/ -c test_wrap.cpp -o test_wrap.o
+#	g++ ${CFLAGS} -shared pHash_wrap.o ${OBJECTS} -ltest -o _test.so
 
 phony: swig build
 
@@ -65,7 +74,7 @@ swig: pHash_wrap.cpp pHash.i .pHash.i
 
 pHash_wrap.cpp:
 	echo " swigging.... "
-	swig -classic -I../../src/ -I/usr/include -c++ -python -o pHash_wrap.cpp pHash.i
+	swig -classic -I../../src/ -I/usr/include -c++ -python -shadow -o pHash_wrap.cpp pHash.i
 
 #echo "building ..."
 #gcc -fPIC $PYTHONINC -I../../src/ -c pHash_wrap.cpp -o pHash_wrap.o
@@ -87,10 +96,10 @@ build: _pHash.so
 	@touch .test
 
 pHash_wrap.o: pHash_wrap.cpp
-	gcc -fPIC ${PYTHONINC} -I../../src/ -c pHash_wrap.cpp -o pHash_wrap.o
+	gcc -fPIC ${PYTHONINC} ${CFLAGS} -I../../src/ -c pHash_wrap.cpp -o pHash_wrap.o
 
 _pHash.so: pHash_wrap.o
-	g++ -shared pHash_wrap.o ${OBJECTS} -lpHash -o _pHash.so
+	g++ ${CFLAGS} -shared pHash_wrap.o ${OBJECTS} -lpHash -o _pHash.so
 
 .test:
 	

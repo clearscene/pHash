@@ -271,7 +271,7 @@ TxtMatch* ph_compare_text_hashes(TxtHashPoint *INPUT, int N1, TxtHashPoint *INPU
 
 
 //%typemap(out) TxtHashPoint * ;
-%clear TxtHashPoint * ;
+//%clear TxtHashPoint * ;
 
 
 /* todo */
