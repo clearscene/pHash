@@ -22,6 +22,8 @@ if test -z $DISTRO; then
    AC_CHECK_FILE(/etc/SuSErelease, [DISTRO="suse"])
 fi
 
+# largefile support is needed for python bindings ( type off_t 64 bits)
+AC_SYS_LARGEFILE
 
 AC_ARG_ENABLE(pthread, [AS_HELP_STRING([--disable-pthread],
 [pthread support @<:@default=no@:>@])], 
