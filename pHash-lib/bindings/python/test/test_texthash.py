@@ -55,74 +55,35 @@ class Text:
   ''' '''
   def makeHash(self,filename):
     res=pHash.ph_texthash(filename)
-    #res=0
-    #print pHash.ph_texthash_List(filename,res)
-    #print '------ makeHash :',res
-    return self.makeTxtHashPointList(res)
-  #
-  def makeTxtHashPointList(self,res):
+    (items,nb)=res
     if len(res) != 2 :
       print 'err: return args:', res
       return None
-    (pointsPtr,nb)=res
-    #item=pHash.TxtHashPointPtr_value(pointsPtr)
-    items=pointsPtr
-    #items=pHash.TxtHashPointArrayIn_frompointer(pointsPtr)
-    print 'items :',items
-    #print 'item.this :',item.this
-    #help(item.this)
-    #print 'item.this.index :',item.this.index
-    #print 'index:',item.index,'hash:',item.hash 
-    #print 'items : ',items
-    #print 'index:',item.index,'hash:',item.hash 
-    #print help(item)
-    print '----------------- '   , (nb)
-    ret=0
-    #ret=[ pHash.TxtHashPointArray_getitem(pointsPtr, ind) for ind in range(0,nb,1)]
-    for ind in range(0,nb):
-      #print 'ind: ',ind
-      #ptr=pHash.TxtHashPointArray_getitem(items, ind)
-      #print 'ptr', ptr
-      #item=pHash.TxtHashPointPtr_value(ptr.this)
-      item=items[ind]
-      #print 'me :', item.printme()
-      #print 'ptr :', items.printptr(ind)
-      #print 'item :',item
-      #print 'index:',item.index,'hash:',item.hash 
-      #print 'item : %d'%(int(item))
-      #print 'hash',item.hash
-      #print 'index',item.index
-      #print 'hash: %016X(%016d) \t index: %08X(%d)'%(item.hash,item.hash,item.index,item.index  )
-      #print 'hash+index: %0.16X %0.8X'%(item.hash,item.index  )
-      #print '%04.8X %08.16X '%(item.index,item.hash  )
-      print 'hash+index: %d %d '%(item.hash,item.index  )
+    ret=[ items[ind] for ind in range(0,nb)]
     return ret
   ''' '''
   def compare(self,hashPoints1,hashPoints2):
     ''' make C arrays '''
     nb1=len(hashPoints1)
     nb2=len(hashPoints2)
-    hashes1=pHash.new_TxtHashPointArray(nb1)
-    hashes2=pHash.new_TxtHashPointArray(nb2)
-    for i in range(0,nb1):
-      pHash.TxtHashPointArray_setitem(hashes1,i,hashPoints1[i])
-    for i in range(0,nb2):
-      pHash.TxtHashPointArray_setitem(hashes2,i,hashPoints2[i])
-    # go
-    res=pHash.ph_compare_text_hashes(hashes1,nb1,hashes2,nb2)
+    # give first pointer address
+    res=pHash.ph_compare_text_hashes(hashPoints1[0],nb1,hashPoints2[0],nb2)
+    # howto do nicely...
+    #hashes1=pHash.new_TxtHashPointArray(nb1)
+    #hashes2=pHash.new_TxtHashPointArray(nb2)
+    #for i in range(0,nb1):
+    #  pHash.TxtHashPointArray_setitem(hashes1,i,hashPoints1[i])
+    #for i in range(0,nb2):
+    #  pHash.TxtHashPointArray_setitem(hashes2,i,hashPoints2[i])
+    ##go
+    #res=pHash.ph_compare_text_hashes(hashes1,nb1,hashes2,nb2)
     return self.makeTxtMatchList(res)
   #
   def makeTxtMatchList(self, res):
     if len(res) != 2 :
       return None
-    (matchesPtr,nb)=res
-    print (matchesPtr,nb)
-    ret=[ pHash.TxtMatchArray_getitem(matchesPtr, ind) for ind in range(0,nb,1)]
-    #print ' pointer ? ' ,   matchesPtr.lenght
-    #for ind in range(0,nb,1):
-    #  item=pHash.TxtMatchArray_getitem(matchesPtr, ind) 
-    #  print 'item :',item
-    #  print 'length',item.length
+    (matches,nb)=res
+    ret=[ matches[ind] for ind in range(0,nb)]
     return ret
 
 '''
@@ -190,9 +151,7 @@ def main(argv):
   logging.basicConfig(level=logging.DEBUG)
 	
   print pHash.ph_about()
-  print pHash.print_sizeof_off_t()
   
-  #return
   
   if(len(argv)<2):
     print "not enough input args" 
@@ -202,38 +161,27 @@ def main(argv):
     file1 = argv[0]
     file2 = argv[1]
 
-    #names,nb=pHash.ph_readfilenames(os.path.dirname(file1))
-    #print names,nb
-    #img='/home/jal/Pictures/test.jpg'
-    #image=Image()
-    #image.makeHash(img)
-    #return
-    
     # new style
     text=Text()
-    #print "file1: %s" %(file1)
+    print "file1: %s" %(file1)
     h1=text.makeHash(file1)
     if ( h1 is None):
       print "Unable to complete text hash function"
       return
-    #print "length %d"%(len(h1))
-    
-    return
-    
+    print "length %d"%(len(h1))
+        
     h2=text.makeHash(file2)
-    #print "file2: %s" %(file2)
+    print "file2: %s" %(file2)
     if ( h2 is None):
       print "Unable to complete text hash function"
       return
-    #print "length %d"%(len(h2))
+    print "length %d"%(len(h2))
     
-    matches=text.compare(h1,h2)
-    #print 'matches ',matches
-        
-    if (matches is None or len(matches) == 0):
+    matches=text.compare(h1,h2)        
+    if (matches is None ):
       print "unable to complete compare function"
       return
-    
+
     count=len(matches)
     print " %d matches"%(count)
     print " indxA  indxB  length"

@@ -85,62 +85,21 @@ typedef __off64_t off64_t;
 # endif
 
 
-
-
-*/
-
-// typedef need to be defined, not in std typemaps.i
-//typedef uint64_t off_t;
-//typedef __off64_t off_t;
-typedef uint32_t off_t;
-
-// NEED TO FORCE off_t to uint32 ... see config.h
-
-/*
-//%apply uint32_t { off_t };   
-
-
-
-typedef struct ph_hash_point {
-    ulong64 hash;
-    off_t index; 
-} TxtHashPoint;
+Solution : use AC_SYS_LARGEFILE in pHash configure.ac 
 
 */
+
+typedef uint64_t off_t;
 
 
 
 %module pHash
 %{
-
-//typedef uint64_t off_t;
-//typedef __off64_t off_t;
-
-
 #include "pHash.h"
 %}
 
-/*
-%typemap(memberin) off_t {
-    if (PyLong_Check($input))
-        //$1 = (unsigned long) PyLong_AsLongLong($input);
-        $1 = (long long) PyLong_AsLongLong($input);
-    else if (PyInt_Check($input))
-        //$1 = (unsigned long) PyInt_AsLong($input);
-        $1 = (long long) PyInt_AsLongLong($input);
- 	
- }
-*/
-
-%typemap(out) off_t {
-    PyObject *o = PyInt_FromLong($1);
-    $result = o;
- }
-
-
-%apply uint32_t { off_t };   
 //%apply uint64_t { off_t };   
-
+/*
 void print_sizeof_off_t();
 %{
   void print_sizeof_off_t(){
@@ -148,30 +107,8 @@ void print_sizeof_off_t();
   return;
   }
 %}
+*/
 
-/*
-PROOF that SWIg messes up C memory....
-*/
-/*
-%typemap(out) TxtHashPoint * ph_texthash {
-    PyObject *list = PyList_New(*arg2);
-    int i =0;
-    printf("arg5 value is %d\n",*arg2);
-    printf("$1 is %x\nsizeof(off_t): %d\n",$1,sizeof(off_t));
-    TxtHashPoint * ptri=$1;
-    for(i=0; i< *arg2; i++ ) {
-      //  PyList_Append(list,$1[i]);
-      //swig_o=SWIG_NewPointerObj(SWIG_as_voidptr($1[i]), SWIGTYPE_p_tTxtHashPoint, SWIG_SHADOW)
-		  //PyList_SetItem(list,i, list) ;//(PyObject *) $1[i]);
-		  //PyList_SetItem(list,i, swig_o ) ;
-      //TxtHashPoint *ptr=($1+i);
-      //printf("typemap C/hash+index: %lld %lld\n",ptr->hash,ptr->index );
-      TxtHashPoint ptr=ptri[i];
-      printf("typemap C/hash+index: %lld %lld\n",ptr.hash,ptr.index );
-		}
-    $result=list;
-}
-*/
 
 /*
 We  declare INPUT and OUTPUT parameters.
@@ -231,36 +168,41 @@ namespace cimg_library {}
 /* probleme sur primary-expression */  
 %include "pHash.h" 
 
+//%array_class(TxtHashPoint,TxtHashPointArrayIn);
+%array_functions(TxtHashPoint,TxtHashPointArray)
+%array_functions(TxtMatch,TxtMatchArray)
+%array_functions(DP,DPArray)
+%array_functions(MVPRetCode,MVPRetCodeArray)
 
 
 %newobject ph_texthash;
 
 /* from http://www.swig.org/papers/PyTutorial97/PyTutorial97.pdf p75 */
+/*
 %extend TxtHashPoint {
   TxtHashPoint *__getitem__(int index)  {
       return (self+index);
   }
-
-  void printme()  {
-      TxtHashPoint *ptr=(self);
-      printf("C/hash+index: %lld %lld\n",ptr->hash,ptr->index );
-      return;
-  }
-  void printptr(int index)  {
-      TxtHashPoint *ptr=(self+index);
-      printf("C/hash+index: %lld %lld\n",ptr->hash,ptr->index );
-      return;
-  }
 }
-
 
 %extend TxtMatch {
   TxtMatch *__getitem__(int index)  {
       return (self+index);
   }
 }
+*/
 
+%define LISTGETITEM(type)
+%extend type {
+  type *__getitem__(int index)  {
+      return (self+index);
+  }
+}
 
+%enddef
+
+LISTGETITEM(TxtHashPoint)
+LISTGETITEM(TxtMatch)
 
 
 /*
@@ -312,61 +254,8 @@ we can use
 //useless
 //%pointer_functions(TxtHashPoint,TxtHashPointPtr);
 
+or simply add an %extend to (type * )__get_item__
 
-or simply add an extend to (type * )__get_item__
-
-with an OUTPUT arg, it's a tuple :
-
-Python :
->>> ( Proxy Class, nbvalue) = pHash.ph_texthash(filename)
-
-
-OR using TYPEMAP(out)
-I can't find a way to make that into a swig list of some sort ...
-we need to cast the pointer in a PyObject ???
-
-you can specify the function name for the typemap
-http://thread.gmane.org/gmane.comp.programming.swig/12727/focus=12729
-
-%typemap(out) TxtMatch * myfunc{
-    PyObject *list = PyList_New(*arg5);
-    int i =0;
-    printf("arg5 value is %d\n",*arg5);
-    for(i=0; i< *arg5; i++ ) {
-      //PyList_Append(list,$1[i]);
-		  PyList_SetItem(list,i, *** Object $1[i]);
-		}
-    $result=list;
-}
-*/
-
-
-/* 
-we just have to find a way to make a PyObject from a TxtHashPoint  
-SWIG_NewPointerObj(SWIG_as_voidptr(p_data), SWIGTYPE_p_tMyStruct, SWIG_SHADOW)
-http://old.nabble.com/C-%3EPerl-%3A-converting-C-array-into-perl-string.-td26642428.html
-
-http://permalink.gmane.org/gmane.comp.programming.swig/16209
-
-%typemap(out) TxtHashPoint * ph_texthash {
-    PyObject *list = PyList_New(*arg2);
-    int i =0;
-    printf("arg5 value is %d\n",*arg2);
-    for(i=0; i< *arg2; i++ ) {
-      //  PyList_Append(list,$1[i]);
-      swig_o=SWIG_NewPointerObj(SWIG_as_voidptr($1[i]), SWIGTYPE_p_tTxtHashPoint, SWIG_SHADOW)
-		  //PyList_SetItem(list,i, list) ;//(PyObject *) $1[i]);
-		  PyList_SetItem(list,i, swig_o ) ;
-
-		}
-    $result=list;
-}
-
-[..]
-
-//%typemap(out) TxtHashPoint * ;
-//%clear TxtHashPoint * ;
 
 */
-
 

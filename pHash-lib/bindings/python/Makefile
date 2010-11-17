@@ -51,16 +51,10 @@
 
 PYTHONINC=`python-config --includes`
 # changes first hashes size on Texthashes
-CFLAGS=-g -pthread -O2 -ffast-math -O3  -fPIC -DPIC 
+CFLAGS=-g -pthread -O2 -ffast-math -O3  -fPIC -DPIC `getconf LFS_CFLAGS`
 
 
-#try:
-#	gcc -c swig -classic -I../../src/ -I/usr/include -c++ -python -o test_wrap.cpp test.i
-#	swig -classic -I../../src/ -I/usr/include -c++ -python -o test_wrap.cpp test.i
-#	gcc -fPIC ${PYTHONINC} ${CFLAGS} -I../../src/ -c test_wrap.cpp -o test_wrap.o
-#	g++ ${CFLAGS} -shared pHash_wrap.o ${OBJECTS} -ltest -o _test.so
-
-phony: swig build
+all: swig build
 
 clean:
 	echo "cleaning"
@@ -82,18 +76,18 @@ pHash_wrap.cpp:
 # exit 1
 #fi
 
-#OBJECTS="../../src/audiophash.o  ../../src/cimgffmpeg.o  ../../src/pHash.o  ../../src/ph_fft.o"
-#OBJECTS=""
-
 #echo "making lib" 
 #g++ -shared pHash_wrap.o $OBJECTS -lpHash -o _pHash.so
 #if [ $? -ne 0 ]; then
 # exit 1
 #fi
 
-build: _pHash.so
-	@#python setup.py build 
-	@touch .test
+build:
+	@python setup.py build 
+
+#build: _pHash.so
+#	@#python setup.py build 
+#	@touch .test
 
 pHash_wrap.o: pHash_wrap.cpp
 	gcc -fPIC ${PYTHONINC} ${CFLAGS} -I../../src/ -c pHash_wrap.cpp -o pHash_wrap.o
