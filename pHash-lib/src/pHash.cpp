@@ -22,8 +22,8 @@
 
 */
 
-#include "pHash.h"
 #include "config.h"
+#include "pHash.h"
 #ifdef HAVE_VIDEO_HASH
 #include "cimgffmpeg.h"
 #endif
