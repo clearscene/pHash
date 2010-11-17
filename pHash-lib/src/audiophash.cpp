@@ -22,6 +22,7 @@
 
 */
 
+#include "config.h"
 #include "audiophash.h"
 #include <sndfile.h>
 #include <samplerate.h>

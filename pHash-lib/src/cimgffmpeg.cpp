@@ -22,7 +22,7 @@
 
 */
 
-
+#include "config.h"
 #include "cimgffmpeg.h"
 
 void vfinfo_close(VFInfo  *vfinfo){
