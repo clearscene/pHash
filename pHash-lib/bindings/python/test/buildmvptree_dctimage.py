@@ -71,17 +71,38 @@ def main(argv):
     print "nbfiles = %d"% nbfiles
     #allocate a list of nbfiles elements # hashlist = (DP**)malloc(nbfiles*sizeof(DP*));
     hashlist=list() 
+    #array_class
+    hashlist=pHash.DPClass(nbfiles)
     count = 0
     for i in range(0,nbfiles):
-      hashlist.append(pHash.ph_malloc_datapoint(mvpfile.hash_type))
-      if (hashlist[count] is None):
+      #hashlist.append(pHash.ph_malloc_datapoint(mvpfile.hash_type))
+      dp=pHash.ph_malloc_datapoint(mvpfile.hash_type)
+      if (dp is None):
         print "mem alloc error"
         return -4
+      
+      ret,tmphash=pHash.ph_dct_imagehash(os.path.join(root,files[i]))
+      if ( ret < 0):
+        print "unable to get hash"
+        continue
+      # malloc dp.hash
+      dp.hash=pHash.copy_ulong64Ptr(tmphash)
+      # assign dp to DPClass array.
+      hashlist[count]=dp
+      
+      #pHash.DPPtrArray_setitem(hashlist,count,pHash.ph_malloc_datapoint(mvpfile.hash_type))
+      #if (pHash.DPPtrArray_getitem(hashlist,count) is None):
+      #  print "mem alloc error"
+      #  return -4
       
       # who is responsible for alloc/dealloc of hash ?
       # why is hash a void * ?
       #hashlist[count].hash = malloc(sizeof(ulong64));
+      #hashlist[count].hash = pHash.new_ulong64Ptr();
+      #cc=pHash.ulong64Class()
       
+      #hashlist[count].hash = cc.cast() 
+      #print 'hashlist[count].hash 1',hashlist[count].hash
       # if hash wasn't a pointer, code would be easier ?:
       #ret,hashlist[count].hash=pHash.ph_dct_imagehash(os.path.join(root,files[i]) )
       #if ( ret < 0):
@@ -92,19 +113,55 @@ def main(argv):
       # we need to fight with pointer and cast...
       # tmphash is the hash value, not the hash pointer
       ret,tmphash=pHash.ph_dct_imagehash(os.path.join(root,files[i]))
+      #print 'post dct',tmphash
+      
+      #print 'hashlist[count].hash 3',hashlist[count].hash
+      #hashlist[count]=dp
+      #cc.assign(tmphash)
+      #print 'cc',cc.value()
+      #print 'hashlist[count].hash 5',hashlist[count].hash
+      #hashlist[count].hash=cc.cast()
+      #print 'hashlist[count].hash 10',hashlist[count].hash
       # we need 
-      hashlist[count].hash=pHash.copy_ulong64Ptr(tmphash)
+      #hashlist[count].hash=pHash.copy_ulong64Ptr(tmphash)
+      #print 'hashlist[count].hash 15',hashlist[count].hash
+
+      dp=hashlist[count]
+      #print 'dp.hash 1', dp.hash      
+      # OK 
+      dp.hash=pHash.copy_ulong64Ptr(tmphash)
+      #print 'dp.hash 5', dp.hash , 'hashlist[count].hash ',hashlist[count].hash
+      hashlist[count]=dp
+      print 'hashlist[count].hash 6 ',hashlist[count].hash
+
+      #hashlist[count].hash=pHash.copy_ulong64Ptr(tmphash)
+      #print 'hashlist[count].hash ',hashlist[count].hash
+
+      #hashlist[count].hash=pHash.new_ulong64Ptr()
+      #print 'dp.hash 7', dp.hash , 'hashlist[count].hash ',hashlist[count].hash            
+      #pHash.ulong64Ptr_assign(hashlist[count].hash,tmphash)
+      #print 'dp.hash 10', dp.hash, 'hashlist[count].hash ',hashlist[count].hash
+
+
+
       if ( ret < 0):
         print "unable to get hash"
         continue
+      #print 'END hashlist[count] ' ,  hashlist[count]
+      #print 'hashval ' ,  hashlist[count].hash
       # working solution, 
       hashval=pHash.ulong64Ptr_value(hashlist[count].hash)
+      #print 'post value'
       print "files[%d]: %s hash = %x"%( i, os.path.join(root,files[i]), hashval )
       hashlist[count].id = os.path.join(root,files[i])
       hashlist[count].hash_length = 1
       count+=1
   #
-  ret = pHash.ph_save_mvptree(mvpfile, hashlist, count)
+  print 'hashlist',hashlist
+  print 'hashlist',hashlist.cast()
+  ret = pHash.ph_save_mvptree(mvpfile, hashlist[0], count)
+  #ret = pHash.ph_save_mvptree(mvpfile, hashlist.cast(), count)
+  #ret = pHash.ph_save_mvptree(mvpfile, hashlist, count)
   print "save: ret code %d"%(ret)
 
   for i in range(0,nbfiles):
