@@ -38,6 +38,7 @@ or distutils
 
 
 /* 
+
 ignoring static, private or useless function
 or non-compatible 
 */
@@ -160,7 +161,6 @@ TxtMatch* ph_compare_text_hashes(TxtHashPoint *INPUT, int N1, TxtHashPoint *INPU
 
 
 
-
 /* http://thread.gmane.org/gmane.comp.programming.swig/12746/focus=12747 */
 namespace cimg_library {}
 
@@ -168,14 +168,16 @@ namespace cimg_library {}
 /* probleme sur primary-expression */  
 %include "pHash.h" 
 
-//%array_class(TxtHashPoint,TxtHashPointArrayIn);
-%array_functions(TxtHashPoint,TxtHashPointArray)
-%array_functions(TxtMatch,TxtMatchArray)
-%array_functions(DP,DPArray)
-%array_functions(MVPRetCode,MVPRetCodeArray)
 
 
-%newobject ph_texthash;
+
+// Now supply the implementation of the DP_hash_set function
+// http://www.swig.org/Doc1.3/SWIG.html #5.5.8  DP_hash_get is non existent no more 
+//void DP_hash_set(DP* dp, ulong64 * INPUT);
+
+
+
+
 
 /* from http://www.swig.org/papers/PyTutorial97/PyTutorial97.pdf p75 */
 /*
@@ -201,8 +203,67 @@ namespace cimg_library {}
 
 %enddef
 
+LISTGETITEM(FileIndex)
+LISTGETITEM(DP)
+LISTGETITEM(slice)
+LISTGETITEM(MVPFile)
+LISTGETITEM(Projections)
+LISTGETITEM(Features)
+LISTGETITEM(Digest)
 LISTGETITEM(TxtHashPoint)
 LISTGETITEM(TxtMatch)
+
+// is enum
+//LISTGETITEM(MVPRetCode)
+
+
+//%array_class(TxtHashPoint,TxtHashPointArrayIn);
+%array_functions(TxtHashPoint,TxtHashPointArray)
+%array_functions(TxtMatch,TxtMatchArray)
+%array_functions(DP,DPArray)
+// MVPRetCode is an enum
+//%array_functions(MVPRetCode,MVPRetCodeArray)
+
+%pointer_functions(ulong64,ulong64Ptr);
+
+// can't define void functions
+//typedef void myvoid ;
+//%pointer_functions(myvoid,myPtr);
+
+
+%naturalvar DP::hash;
+/*
+typedef struct ph_datapoint {
+    char *id;
+%naturalvar hash;
+    void *hash;
+    float *path;
+    uint32_t hash_length;
+    uint8_t hash_type;
+}DP;
+*/
+
+%newobject ph_texthash;
+
+//      ret,hashlist[count].hash=pHash.ph_dct_imagehash(files[i])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /*

@@ -108,7 +108,8 @@ test: build .test
 
 install:
 	echo 'install'
-# sudo python setup.py install
+	sudo python setup.py install
 # need copy _pHash.so into the egg install...
 #cp pHash.py _pHash.so /usr/local/lib/python2.5/site-packages/
 #sudo python setup.py install
+
