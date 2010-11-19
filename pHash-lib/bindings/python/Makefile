@@ -68,19 +68,7 @@ swig: pHash_wrap.cpp pHash.i .pHash.i
 
 pHash_wrap.cpp:
 	echo " swigging.... "
-	swig -classic -I../../src/ -I/usr/include -c++ -python -shadow -o pHash_wrap.cpp pHash.i
-
-#echo "building ..."
-#gcc -fPIC $PYTHONINC -I../../src/ -c pHash_wrap.cpp -o pHash_wrap.o
-#if [ $? -ne 0 ]; then
-# exit 1
-#fi
-
-#echo "making lib" 
-#g++ -shared pHash_wrap.o $OBJECTS -lpHash -o _pHash.so
-#if [ $? -ne 0 ]; then
-# exit 1
-#fi
+	swig -classic -I../../src/ -I/usr/include -c++ -python -shadow -O -o pHash_wrap.cpp pHash.i
 
 build:
 	@python setup.py build 

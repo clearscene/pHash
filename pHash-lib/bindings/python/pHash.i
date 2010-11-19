@@ -89,13 +89,26 @@ typedef __off64_t off64_t;
 Solution : use AC_SYS_LARGEFILE in pHash configure.ac 
 
 */
-
 typedef uint64_t off_t;
+
+
+// redefine DP.hash to be a ulong64 *.
+// we can't access void * data. 
+typedef struct ph_datapoint {
+    char *id;
+%extend {
+    ulong64 * hash;
+    }
+    float *path;
+    uint32_t hash_length;
+    uint8_t hash_type;
+}DP;
 
 
 
 %module pHash
 %{
+
 #include "pHash.h"
 %}
 
@@ -169,31 +182,8 @@ namespace cimg_library {}
 %include "pHash.h" 
 
 
-
-
-// Now supply the implementation of the DP_hash_set function
-// http://www.swig.org/Doc1.3/SWIG.html #5.5.8  DP_hash_get is non existent no more 
-//void DP_hash_set(DP* dp, ulong64 * INPUT);
-
-
-
-
-
 /* from http://www.swig.org/papers/PyTutorial97/PyTutorial97.pdf p75 */
-/*
-%extend TxtHashPoint {
-  TxtHashPoint *__getitem__(int index)  {
-      return (self+index);
-  }
-}
-
-%extend TxtMatch {
-  TxtMatch *__getitem__(int index)  {
-      return (self+index);
-  }
-}
-*/
-
+// we define a template for array access
 %define LISTGETITEM(type)
 %extend type {
   type *__getitem__(int index)  {
@@ -204,7 +194,7 @@ namespace cimg_library {}
 %enddef
 
 LISTGETITEM(FileIndex)
-LISTGETITEM(DP)
+//LISTGETITEM(DP)
 LISTGETITEM(slice)
 LISTGETITEM(MVPFile)
 LISTGETITEM(Projections)
@@ -226,22 +216,37 @@ LISTGETITEM(TxtMatch)
 
 %pointer_functions(ulong64,ulong64Ptr);
 
-// can't define void functions
+// can't define void functions, error in compiler
 //typedef void myvoid ;
 //%pointer_functions(myvoid,myPtr);
 
 
-%naturalvar DP::hash;
+//%naturalvar DP::hash;
+
+
+// Specific implementation of set/get functions
+%{
+ulong64 *DP_hash_get(DP *p) {
+   return (ulong64 *)p->hash;
+}
+
+void DP_hash_set(DP *p, ulong64 *val) {
+    p->hash=(void *)malloc(sizeof(ulong64));
+    ulong64 v=*val;
+    //printf("value is %lld\n",v);
+    *((ulong64*)p->hash)=v;
+    return;
+}
 /*
-typedef struct ph_datapoint {
-    char *id;
-%naturalvar hash;
-    void *hash;
-    float *path;
-    uint32_t hash_length;
-    uint8_t hash_type;
-}DP;
+void DP_hash_set(DP *p, ulong64 val) {
+    p->hash=(void *)malloc(sizeof(ulong64));
+    ulong64 v=val;
+    //printf("value is %lld\n",v);
+    *((ulong64*)p->hash)=v;
+    return;
+}
 */
+%}
 
 %newobject ph_texthash;
 
@@ -317,6 +322,18 @@ we can use
 
 or simply add an %extend to (type * )__get_item__
 
+
+*/
+
+
+/*
+
+I guess this is what the kind of code you are looking for using a
+PyObject*. You can write your own typemap, something like:
+
+%typemap(out, noblock=1) void *IntervalTree::Find {
+   $result = SWIG_NewPointerObj($1, SWIGTYPE_p_XYZ, SWIG_POINTER_OWN);
+}
 
 */
 
