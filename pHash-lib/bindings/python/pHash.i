@@ -92,6 +92,7 @@ Solution : use AC_SYS_LARGEFILE in pHash configure.ac
 typedef uint64_t off_t;
 
 
+
 // redefine DP.hash to be a ulong64 *.
 // we can't access void * data. 
 typedef struct ph_datapoint {
@@ -102,27 +103,21 @@ typedef struct ph_datapoint {
     float *path;
     uint32_t hash_length;
     uint8_t hash_type;
-}DP;
+}DP,*DPptr;
 
+typedef void * voidPtr;
 
 
 %module pHash
 %{
 
+typedef struct ph_datapoint * DPptr ;
+typedef void * voidPtr;
+
 #include "pHash.h"
-%}
 
-//%apply uint64_t { off_t };   
-/*
-void print_sizeof_off_t();
-%{
-  void print_sizeof_off_t(){
-    printf("sizeof(off_t): %d\n",sizeof(off_t));
-  return;
-  }
-%}
-*/
 
+%}
 
 /*
 We  declare INPUT and OUTPUT parameters.
@@ -210,16 +205,48 @@ LISTGETITEM(TxtMatch)
 //%array_class(TxtHashPoint,TxtHashPointArrayIn);
 %array_functions(TxtHashPoint,TxtHashPointArray)
 %array_functions(TxtMatch,TxtMatchArray)
-%array_functions(DP,DPArray)
-// MVPRetCode is an enum
-//%array_functions(MVPRetCode,MVPRetCodeArray)
+
+%array_class(DP,DPArray);
 
 %pointer_functions(ulong64,ulong64Ptr);
+%pointer_class(ulong64,ulong64Class);
 
-// can't define void functions, error in compiler
-//typedef void myvoid ;
-//%pointer_functions(myvoid,myPtr);
+/*
+Pointer access to DP ** ....
 
+typedef must be declared in the headers of the .i 
+AND in the %include section.
+
+
+# method with pointer_function // 
+###hashlist1=pHash.copy_DPFunc(hashlist.cast().this)
+###hashlist2=pHash.copy_DPptrFunc(hashlist1)
+hashlist2=pHash.copy_DPptrFunc(hashlist.cast().this)
+hashlistf=hashlist2
+
+# method with pointer_class
+#hashlist1=pHash.DPClass.frompointer(hashlist.cast().this)
+#hashlist2=pHash.DPptrClass()
+#hashlist2.assign(hashlist1.cast().this)
+#hashlistf=hashlist2.cast()
+*/
+%pointer_class(DP,DPClass);
+%pointer_class(DPptr,DPptrClass);
+%pointer_functions(DP,DPFunc);
+%pointer_functions(DPptr,DPptrFunc);
+
+
+/*
+Access to void * hash, as a struct member 
+*/
+%pointer_functions(voidPtr,myPtr);
+
+/*
+cast function helpers ...
+*/
+// ulong64* voidToULong64(void *val) ;
+//%pointer_cast (void *, ulong64 *, voidToULong64 );
+//%pointer_cast (ulong64 *, void *, ulong64ToVoid );
 
 //%naturalvar DP::hash;
 
@@ -237,22 +264,23 @@ void DP_hash_set(DP *p, ulong64 *val) {
     *((ulong64*)p->hash)=v;
     return;
 }
-/*
-void DP_hash_set(DP *p, ulong64 val) {
-    p->hash=(void *)malloc(sizeof(ulong64));
-    ulong64 v=val;
-    //printf("value is %lld\n",v);
-    *((ulong64*)p->hash)=v;
-    return;
-}
-*/
+
 %}
 
 %newobject ph_texthash;
 
-//      ret,hashlist[count].hash=pHash.ph_dct_imagehash(files[i])
 
 
+//%apply uint64_t { off_t };   
+/*
+void print_sizeof_off_t();
+%{
+  void print_sizeof_off_t(){
+    printf("sizeof(off_t): %d\n",sizeof(off_t));
+  return;
+  }
+%}
+*/
 
 
 
