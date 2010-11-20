@@ -272,6 +272,7 @@ hashlistf=hashlist2
 %pointer_functions(DP,DPFunc);
 %pointer_functions(DPptr,DPptrFunc);
 
+%array_class(DPptr,DPptrArray);
 
 /*
 Access to void * hash, as a struct member 

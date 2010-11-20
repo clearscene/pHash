@@ -55,9 +55,10 @@ def main(argv):
   mvpfile= pHash.MVPFile() 
   mvpfile.branchfactor = 2
   mvpfile.pathlength = 5
-  mvpfile.leafcapacity = 50
-  mvpfile.pgsize = 8192
+  mvpfile.leafcapacity = 23 #50
+  mvpfile.pgsize = 4096 #8192
   mvpfile.filename = filename
+  # @TODO
   #mvpfile.hashdist = distancefunc
   mvpfile.hash_type =  pHash.UINT64ARRAY
 
@@ -65,7 +66,6 @@ def main(argv):
   print "dir name: %s"%( dir_name)
 
   for root, dirs, files in os.walk(dir_name):
-    root
     nbfiles=len(files)
     print "nbfiles = %d"% nbfiles
     #allocate a list of nbfiles elements # hashlist = (DP**)malloc(nbfiles*sizeof(DP*));
@@ -74,13 +74,12 @@ def main(argv):
     hashlist=pHash.DPArray(nbfiles)
     count = 0
     for i in range(0,nbfiles):
-      filename=os.path.join(root,files[i])
+      filename=os.path.normpath(os.path.join(root,files[i]) )
       # malloc DP
       hashlist[count]=pHash.ph_malloc_datapoint(mvpfile.hash_type)
       if (hashlist[count] is None):
         print "mem alloc error"
         return -4
-      
       ret,tmphash=pHash.ph_dct_imagehash(filename)
       if ( ret < 0):
         print "unable to get hash"
