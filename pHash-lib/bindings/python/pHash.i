@@ -91,6 +91,7 @@ Solution : use AC_SYS_LARGEFILE in pHash configure.ac
 */
 typedef uint64_t off_t;
 
+typedef uint64_t ulong64;
 
 
 // redefine DP.hash to be a ulong64 *.
@@ -108,7 +109,39 @@ typedef struct ph_datapoint {
 typedef void * voidPtr;
 
 
-%module pHash
+
+/*
+http://www.swig.org/Doc1.3/SWIGDocumentation.html#Scripting_nn4
+
+And now, a final note about function pointer support. Although SWIG does not
+ normally allow callback functions to be written in the target language, 
+ this can be accomplished with the use of typemaps and other advanced SWIG features. 
+ This is described in a later chapter.
+*/
+/* call back function for mvp tree functions - to performa distance calc.'s*/
+typedef float (*hash_compareCB)(DP *pointA, DP *pointB);
+
+typedef struct ph_mvp_file {
+    char *filename;   /* name of db to use */
+    char *buf;
+    off_t file_pos;
+    int fd;
+    uint8_t filenumber;
+    uint8_t nbdbfiles;
+    uint8_t branchfactor; /*branch factor of tree, M(=2)*/
+    uint8_t pathlength;  
+    uint8_t leafcapacity; /*maximum number of data points to a leaf, K(=25) */
+    off_t pgsize;
+    HashType hash_type;
+    //%extend {
+    //  float hashdist;
+    //}
+    hash_compareCB hashdist;
+} MVPFile ;
+
+
+
+%module(directors="1") pHash
 %{
 
 typedef struct ph_datapoint * DPptr ;
@@ -119,6 +152,9 @@ typedef void * voidPtr;
 
 %}
 
+
+%feature("director") MVPFile; 
+
 /*
 We  declare INPUT and OUTPUT parameters.
 Output parameters are not longer args, but part of the return value tuple/sequence. 
@@ -127,24 +163,24 @@ Output parameters are not longer args, but part of the return value tuple/sequen
 //%apply int *OUTPUT { int *rows, int *columns };
 
 
-DP* ph_malloc_datapoint(int hashtype);
+DP* ph_malloc_datapoint(int hashtype); //OK
 //void ph_free_datapoint(DP *INPUT);
-//const char* ph_about();
-int ph_radon_projections(const CImg<uint8_t> &INPUT,int N,Projections &OUTPUT);
-int ph_feature_vector(const Projections &INPUT,Features &OUTPUT);
-int ph_dct(const Features &INPUT, Digest &OUTPUT);
-int ph_crosscorr(const Digest &INPUT,const Digest &INPUT,double &INPUT, double threshold = 0.90);
+//const char* ph_about(); //OK
+int ph_radon_projections(const CImg<uint8_t> &INPUT,int N,Projections &OUTPUT); // not use in examples 
+int ph_feature_vector(const Projections &INPUT,Features &OUTPUT); // not use in examples 
+int ph_dct(const Features &INPUT, Digest &OUTPUT); // not use in examples 
+int ph_crosscorr(const Digest &INPUT,const Digest &INPUT,double &INPUT, double threshold = 0.90); // not use in examples 
 //_ph_image_digest
-int ph_image_digest(const char *file, double sigma, double gamma, Digest &OUTPUT,int N=180);
+int ph_image_digest(const char *file, double sigma, double gamma, Digest &OUTPUT,int N=180); // not use in examples 
 //_ph_compare_images
-int ph_compare_images(const char *file1, const char *file2,double &OUTPUT, double sigma = 3.5, double gamma=1.0, int N=180,double threshold=0.90);
+int ph_compare_images(const char *file1, const char *file2,double &OUTPUT, double sigma = 3.5, double gamma=1.0, int N=180,double threshold=0.90); // not use in examples 
 //ph_dct_matrix
-int ph_dct_imagehash(const char* file,ulong64 &OUTPUT); // TESTED OK
+int ph_dct_imagehash(const char* file,ulong64 &OUTPUT); // OK
 //ph_dct_image_hashes
 //ph_getKeyFramesFromVideo
-ulong64* ph_dct_videohash(const char *filename, int &OUTPUT);
+ulong64* ph_dct_videohash(const char *filename, int &OUTPUT); //OK
 DP** ph_dct_video_hashes(char *files[], int count, int threads = 0);
-double ph_dct_videohash_dist(ulong64 *INPUT, int N1, ulong64 *INPUT, int N2, int threshold=21);
+double ph_dct_videohash_dist(ulong64 *INPUT, int N1, ulong64 *INPUT, int N2, int threshold=21); //OK
 int ph_hamming_distance(const ulong64 hash1,const ulong64 hash2);
 DP** ph_read_imagehashes(const char *dirname,int capacity, int &OUTPUT);
 uint8_t* ph_mh_imagehash(const char *filename, int &OUTPUT, float alpha=2.0f, float lvl = 1.0f);
@@ -160,7 +196,7 @@ float hammingdistance(DP *INPUT, DP *INPUT);
 //_ph_query_mvptree
 MVPRetCode ph_query_mvptree(MVPFile *INPUT, DP *INPUT, int knearest, float radius, float threshold,   DP **OUTPUT, int &OUTPUT);
 //ph_save_mvptree
-MVPRetCode ph_save_mvptree(MVPFile *INPUT, DP **INPUT, int nbpoints);
+MVPRetCode ph_save_mvptree(MVPFile *INPUT, DP **INPUT, int nbpoints); //OK
 //ph_add_mvptree
 MVPRetCode ph_add_mvptree(MVPFile *INPUT, DP **INPUT, int nbpoints, int &OUTPUT);
 TxtHashPoint* ph_texthash(const char *filename, int *OUTPUT);
@@ -191,13 +227,13 @@ namespace cimg_library {}
 LISTGETITEM(FileIndex)
 //LISTGETITEM(DP)
 LISTGETITEM(slice)
-LISTGETITEM(MVPFile)
+//LISTGETITEM(MVPFile)
 LISTGETITEM(Projections)
 LISTGETITEM(Features)
 LISTGETITEM(Digest)
 LISTGETITEM(TxtHashPoint)
 LISTGETITEM(TxtMatch)
-
+ 
 // is enum
 //LISTGETITEM(MVPRetCode)
 
@@ -207,6 +243,7 @@ LISTGETITEM(TxtMatch)
 %array_functions(TxtMatch,TxtMatchArray)
 
 %array_class(DP,DPArray);
+%array_class(ulong64,ulong64Array);
 
 %pointer_functions(ulong64,ulong64Ptr);
 %pointer_class(ulong64,ulong64Class);
@@ -265,9 +302,23 @@ void DP_hash_set(DP *p, ulong64 *val) {
     return;
 }
 
+/*
+float *MVPFile_hashdist_get(MVPFile * m, DP *pointA, DP *pointB) {
+   return (m->hashdist)(pointA,pointB);
+}
+
+void MVPFile_hashdist_set(MVPFile * m, float * f) {
+    m->hashdist=f;
+    return;
+}
+*/
+
+
 %}
 
 %newobject ph_texthash;
+
+
 
 
 
