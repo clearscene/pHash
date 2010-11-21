@@ -27,7 +27,11 @@ import locale,logging,os,sys,time
 from os.path import join
 
 def distancefunc(pa,pb):
-    d = pHash.ph_hamming_distance(pa.hash, pb.hash)
+    print ': distancefunc a.hash',pa.hash, pHash.ulong64Ptr_value(pb.hash)
+    #d = pHash.ph_hamming_distance(pHash.copy_ulong64Ptr(pa.hash), pHash.copy_ulong64Ptr(pb.hash))
+    d = pHash.ph_hamming_distance(pHash.ulong64Ptr_value(pa.hash), pHash.ulong64Ptr_value(pb.hash))
+    #d = pHash.ph_hamming_distance(pa.hash, pb.hash)
+    print "%d = distancefunc %s %s"%(d,pa.this,pb.this)
     return d
 
 # if you dont keep ref to mall.this or to mall, it's garbaged..

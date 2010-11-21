@@ -131,7 +131,7 @@ typedef uint64_t off_t;
 // redefine DP.hash to be a ulong64 *.
 // we can't access void * data. 
 
-/*
+
 typedef struct ph_datapoint {
     char *id;
 %extend {
@@ -141,7 +141,7 @@ typedef struct ph_datapoint {
     uint32_t hash_length;
     uint8_t hash_type;
 }DP;
-*/
+
 
 
 typedef struct ph_datapoint * DPptr ;
@@ -459,15 +459,19 @@ extern void test(void);
 
 %{
 static PyObject *my_pycallback = NULL;
-static float PythonCallBack(DP *a,DP *b)
+static float PythonCallBack(DP *pa,DP *pb)
 {
-   PyObject *func, *arglist;
+   PyObject *func, *arglist, *a, *b;
    PyObject *result;
    float    dres = 0;
 
+   printf("PythonCallBack ( %x,%x)\n",pa,pb);
+
    func = my_pycallback;     /* This is the function .... */
    //arglist = Py_BuildValue("()");  /* No arguments needed */
-   arglist = Py_BuildValue("(o,o)",a,b); // need to make pytho object from a and b
+   a=SWIG_NewPointerObj(SWIG_as_voidptr(pa), SWIGTYPE_p_ph_datapoint, SWIG_POINTER_OWN |  0 );
+   b=SWIG_NewPointerObj(SWIG_as_voidptr(pb), SWIGTYPE_p_ph_datapoint, SWIG_POINTER_OWN |  0 );
+   arglist = Py_BuildValue("(O,O)",a,b); // need to make pytho object from a and b
    result =  PyEval_CallObject(func, arglist);
    //Py_DECREF(arglist);
    if (result) {
@@ -519,10 +523,10 @@ void set_callback(hash_compareCB c) {
 }
 
 void test(void) {
-  DP *a;
-  DP * b;
+  DP a;
+  DP b;
   printf("Testing the callback function\n");
-  if (my_callback) (*my_callback)(a,b);
+  if (my_callback) (*my_callback)(&a,&b);
   else printf("No callback registered\n");
 }
 %}
