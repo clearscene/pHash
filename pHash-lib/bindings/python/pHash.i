@@ -37,6 +37,31 @@ or distutils
 %include "windows.i"
 
 
+
+%module(directors="1") pHash
+%{
+
+typedef struct ph_datapoint * DPptr ;
+typedef void * voidPtr;
+
+#include "pHash.h"
+
+//typedef float (*hash_compareCB)(DP *pointA, DP *pointB);
+//typedef void (*CALLBACK)(void);
+extern hash_compareCB my_callback;
+
+extern void set_callback(hash_compareCB c);
+extern void my_set_callback(MVPFile *m, PyObject *PyFunc);
+
+extern void test(void); //args ?
+
+%}
+
+
+%feature("director") MVPFile; 
+
+
+
 /* 
 
 ignoring static, private or useless function
@@ -55,6 +80,15 @@ or non-compatible
 %ignore _ph_add_mvptree;
 %ignore _ph_query_mvptree;
 %ignore ph_getKeyFramesFromVideo;
+
+
+
+
+
+%newobject ph_texthash;
+
+/* Urgently important to define mallocs... */
+%newobject ph_malloc_datapoint;
 
 /* -------------------------- std */
 
@@ -91,11 +125,13 @@ Solution : use AC_SYS_LARGEFILE in pHash configure.ac
 */
 typedef uint64_t off_t;
 
-typedef uint64_t ulong64;
+//typedef uint64_t ulong64;
 
 
 // redefine DP.hash to be a ulong64 *.
 // we can't access void * data. 
+
+/*
 typedef struct ph_datapoint {
     char *id;
 %extend {
@@ -104,10 +140,13 @@ typedef struct ph_datapoint {
     float *path;
     uint32_t hash_length;
     uint8_t hash_type;
-}DP,*DPptr;
+}DP;
+*/
+
+
+typedef struct ph_datapoint * DPptr ;
 
 typedef void * voidPtr;
-
 
 
 /*
@@ -119,18 +158,22 @@ And now, a final note about function pointer support. Although SWIG does not
  This is described in a later chapter.
 */
 /* call back function for mvp tree functions - to performa distance calc.'s*/
-typedef float (*hash_compareCB)(DP *pointA, DP *pointB);
+//typedef float (*hash_compareCB)(DP *pointA, DP *pointB);
+// SEE lOWER 
 
+
+
+/*
 typedef struct ph_mvp_file {
-    char *filename;   /* name of db to use */
+    char *filename; 
     char *buf;
     off_t file_pos;
     int fd;
     uint8_t filenumber;
     uint8_t nbdbfiles;
-    uint8_t branchfactor; /*branch factor of tree, M(=2)*/
+    uint8_t branchfactor; 
     uint8_t pathlength;  
-    uint8_t leafcapacity; /*maximum number of data points to a leaf, K(=25) */
+    uint8_t leafcapacity; 
     off_t pgsize;
     HashType hash_type;
     //%extend {
@@ -138,22 +181,7 @@ typedef struct ph_mvp_file {
     //}
     hash_compareCB hashdist;
 } MVPFile ;
-
-
-
-%module(directors="1") pHash
-%{
-
-typedef struct ph_datapoint * DPptr ;
-typedef void * voidPtr;
-
-#include "pHash.h"
-
-
-%}
-
-
-%feature("director") MVPFile; 
+*/
 
 /*
 We  declare INPUT and OUTPUT parameters.
@@ -204,13 +232,19 @@ TxtMatch* ph_compare_text_hashes(TxtHashPoint *INPUT, int N1, TxtHashPoint *INPU
 
 
 
-
 /* http://thread.gmane.org/gmane.comp.programming.swig/12746/focus=12747 */
 namespace cimg_library {}
 
 
 /* probleme sur primary-expression */  
 %include "pHash.h" 
+
+
+
+%extend DP {
+    ulong64 * hash;
+
+}
 
 
 /* from http://www.swig.org/papers/PyTutorial97/PyTutorial97.pdf p75 */
@@ -226,8 +260,9 @@ namespace cimg_library {}
 
 LISTGETITEM(FileIndex)
 //LISTGETITEM(DP)
+//LISTGETITEM(DPptr)
 LISTGETITEM(slice)
-//LISTGETITEM(MVPFile)
+LISTGETITEM(MVPFile)
 LISTGETITEM(Projections)
 LISTGETITEM(Features)
 LISTGETITEM(Digest)
@@ -242,7 +277,9 @@ LISTGETITEM(TxtMatch)
 %array_functions(TxtHashPoint,TxtHashPointArray)
 %array_functions(TxtMatch,TxtMatchArray)
 
-%array_class(DP,DPArray);
+
+// DOES NOT WORK AS INTENDED %array_class(DP,DPArray);
+%array_class(DPptr,DPArray);
 %array_class(ulong64,ulong64Array);
 
 %pointer_functions(ulong64,ulong64Ptr);
@@ -319,6 +356,7 @@ void MVPFile_hashdist_set(MVPFile * m, float * f) {
 
 %newobject ph_texthash;
 
+%newobject ph_malloc_datapoint;
 
 
 
@@ -332,21 +370,163 @@ void print_sizeof_off_t();
   return;
   }
 %}
+
+
+*/
+
+void print_sizeof_MVPFile();
+%{
+  void print_sizeof_MVPFile(){
+    printf("sizeof(MVPFile): %d\n",sizeof(MVPFile));
+  return;
+  }
+%}
+
+
+/*
+Python callbacks called from C source language..
+      printf("\n",);
+http://old-tantale.fifi.org/doc/swig-examples/python/callback/widget.i
+
+http://stackoverflow.com/questions/3843064/swig-passing-argument-to-python-callback-fuction
+
+*/
+
+#ifdef SWIGPYTHON
+
+
+
+// ----------------------------------------------------------------
+// Python helper functions for adding callbacks
+// ----------------------------------------------------------------
+typedef float (*hash_compareCB)(DP *pointA, DP *pointB,void*);
+/*
+%{
+
+void mvpfile_add_callback(MVPFile *m, hash_compareCB callback, void *clientdata) {
+  m->hashdist = callback;
+  //m->clientdata = clientdata;
+};
+
+*/
+
+/* This function matches the prototype of a normal C callback
+   function for our widget. However, the clientdata pointer
+   actually refers to a Python callable object. */
+
+/*
+//static double PythonCallBack(double a, void *clientdata)
+static float PythonCallBack(DP* a,DP* b, void *clientdata)
+{
+   PyObject *func, *arglist;
+   PyObject *result;
+   float    dres = 0;
+   
+   func = (PyObject *) clientdata;
+   //arglist = Py_BuildValue("(d)",a);
+   // need Py_Buildvalue("(DP)",a)
+   // need Py_Buildvalue("(DP)",b)
+   arglist = Py_BuildValue("(o,o)",a,b);
+   result = PyEval_CallObject(func,arglist);
+   Py_DECREF(arglist);
+   if (result) {
+     dres = PyFloat_AsDouble(result);
+   }
+   Py_XDECREF(result);
+   return dres;
+}
+
+//static void pywidget_add_callback(Widget *w, PyObject *PyFunc) {
+static void set_mvpfile_callback(MVPFile *m, PyObject *PyFunc) {
+  mvpfile_add_callback(m,PythonCallBack, (void *) PyFunc);
+  Py_INCREF(PyFunc);
+}
+
+%}
 */
 
 
+// An entirely different mechanism for handling a callback
+
+// definitions are also  in %module
+
+extern hash_compareCB my_callback;
+
+extern void set_callback(hash_compareCB c);
+extern void my_set_callback(MVPFile *m, PyObject *PyFunc);
+
+extern void test(void);
+
+%{
+static PyObject *my_pycallback = NULL;
+static float PythonCallBack(DP *a,DP *b)
+{
+   PyObject *func, *arglist;
+   PyObject *result;
+   float    dres = 0;
+
+   func = my_pycallback;     /* This is the function .... */
+   //arglist = Py_BuildValue("()");  /* No arguments needed */
+   arglist = Py_BuildValue("(o,o)",a,b); // need to make pytho object from a and b
+   result =  PyEval_CallObject(func, arglist);
+   //Py_DECREF(arglist);
+   if (result) {
+     dres = PyFloat_AsDouble(result);
+   }
+   Py_XDECREF(result);
+   return dres;
+}
+
+//call in python to set the python callback function.
+void my_set_callback(MVPFile *m, PyObject *PyFunc)
+{
+    Py_XDECREF(my_pycallback);          /* Dispose of previous callback */
+    Py_XINCREF(PyFunc);         /* Add a reference to new callback */
+    my_pycallback = PyFunc;         /* Remember new callback */
+    //set_callback(PythonCallBack); // CALLBACK is typed...
+    m->hashdist=PythonCallBack;
+}
+
+%}
+
+// -------------------------------------------------------------------
+// SWIG typemap allowing us to grab a Python callable object
+// -------------------------------------------------------------------
+
+//%typemap(python,in) PyObject *PyFunc {
+%typemap(in) PyObject *PyFunc {
+  if (!PyCallable_Check($input)) {
+      PyErr_SetString(PyExc_TypeError, "Need a callable object!");
+      return NULL;
+  }
+  $1 = $input;
+}
 
 
 
+%{
+typedef float (*hash_compareCB)(DP *pointA, DP *pointB);
+//typedef void (*CALLBACK)(void);
 
+hash_compareCB my_callback = 0;
 
+void set_callback(hash_compareCB c);
+void test(void);
 
+void set_callback(hash_compareCB c) {
+  my_callback = c;
+  // TODO set callback pointer in MVPFile struct
+}
 
-
-
-
-
-
+void test(void) {
+  DP *a;
+  DP * b;
+  printf("Testing the callback function\n");
+  if (my_callback) (*my_callback)(a,b);
+  else printf("No callback registered\n");
+}
+%}
+#endif SWIGPYTHON
 
 
 
