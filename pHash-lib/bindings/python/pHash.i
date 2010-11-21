@@ -47,13 +47,9 @@ typedef void * voidPtr;
 #include "pHash.h"
 
 //typedef float (*hash_compareCB)(DP *pointA, DP *pointB);
-//typedef void (*CALLBACK)(void);
 extern hash_compareCB my_callback;
 
-extern void set_callback(hash_compareCB c);
 extern void my_set_callback(MVPFile *m, PyObject *PyFunc);
-
-extern void test(void); //args ?
 
 %}
 
@@ -451,11 +447,8 @@ static void set_mvpfile_callback(MVPFile *m, PyObject *PyFunc) {
 // definitions are also  in %module
 
 extern hash_compareCB my_callback;
-
-extern void set_callback(hash_compareCB c);
 extern void my_set_callback(MVPFile *m, PyObject *PyFunc);
 
-extern void test(void);
 
 %{
 static PyObject *my_pycallback = NULL;
@@ -465,15 +458,14 @@ static float PythonCallBack(DP *pa,DP *pb)
    PyObject *result;
    float    dres = 0;
 
-   printf("PythonCallBack ( %x,%x)\n",pa,pb);
+   //printf("PythonCallBack ( %x,%x)\n",pa,pb);
 
    func = my_pycallback;     /* This is the function .... */
-   //arglist = Py_BuildValue("()");  /* No arguments needed */
    a=SWIG_NewPointerObj(SWIG_as_voidptr(pa), SWIGTYPE_p_ph_datapoint, SWIG_POINTER_OWN |  0 );
    b=SWIG_NewPointerObj(SWIG_as_voidptr(pb), SWIGTYPE_p_ph_datapoint, SWIG_POINTER_OWN |  0 );
    arglist = Py_BuildValue("(O,O)",a,b); // need to make pytho object from a and b
    result =  PyEval_CallObject(func, arglist);
-   //Py_DECREF(arglist);
+   Py_DECREF(arglist);
    if (result) {
      dres = PyFloat_AsDouble(result);
    }
@@ -487,7 +479,6 @@ void my_set_callback(MVPFile *m, PyObject *PyFunc)
     Py_XDECREF(my_pycallback);          /* Dispose of previous callback */
     Py_XINCREF(PyFunc);         /* Add a reference to new callback */
     my_pycallback = PyFunc;         /* Remember new callback */
-    //set_callback(PythonCallBack); // CALLBACK is typed...
     m->hashdist=PythonCallBack;
 }
 
@@ -514,21 +505,6 @@ typedef float (*hash_compareCB)(DP *pointA, DP *pointB);
 
 hash_compareCB my_callback = 0;
 
-void set_callback(hash_compareCB c);
-void test(void);
-
-void set_callback(hash_compareCB c) {
-  my_callback = c;
-  // TODO set callback pointer in MVPFile struct
-}
-
-void test(void) {
-  DP a;
-  DP b;
-  printf("Testing the callback function\n");
-  if (my_callback) (*my_callback)(&a,&b);
-  else printf("No callback registered\n");
-}
 %}
 #endif SWIGPYTHON
 

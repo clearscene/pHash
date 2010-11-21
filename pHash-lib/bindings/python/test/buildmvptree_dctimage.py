@@ -27,11 +27,11 @@ import locale,logging,os,sys,time
 from os.path import join
 
 def distancefunc(pa,pb):
-    print ': distancefunc a.hash',pa.hash, pHash.ulong64Ptr_value(pb.hash)
+    #print ': distancefunc a.hash',pa.hash, pHash.ulong64Ptr_value(pb.hash)
     #d = pHash.ph_hamming_distance(pHash.copy_ulong64Ptr(pa.hash), pHash.copy_ulong64Ptr(pb.hash))
     d = pHash.ph_hamming_distance(pHash.ulong64Ptr_value(pa.hash), pHash.ulong64Ptr_value(pb.hash))
     #d = pHash.ph_hamming_distance(pa.hash, pb.hash)
-    print "%d = distancefunc %s %s"%(d,pa.this,pb.this)
+    #print "%d = distancefunc %s %s"%(d,pa.this,pb.this)
     return d
 
 # if you dont keep ref to mall.this or to mall, it's garbaged..
@@ -163,36 +163,6 @@ def main(argv):
         hashlist[count].hash_length = 1
         count+=1
         l.append(tmp)
-     #
-    if debug :
-      #debug
-      count=0
-      ret,tmphash=pHash.ph_dct_imagehash('plop/5108884.jpg')
-      l=[]
-      for i in range(0,nbfiles):
-        #hashlist[count]=pHash.ph_malloc_datapoint(mvpfile.hash_type)
-        tmp=pHash.DP()
-        hashlist[count]=tmp
-        hashlist[count].hash_type=mvpfile.hash_type
-        if (hashlist[count] is None):
-          print "mem alloc error"
-          return -4
-        tmphash+=1
-        #tmphash=pHash.new_ulong64Ptr()
-        #tmphash=pHash.ulong64Ptr_assign(tmphash,0x591e67a59696b449)
-        hashlist[count].hash = pHash.copy_ulong64Ptr(tmphash)
-        #hashlist[count].hash = tmphash
-        #print '@',pHash.ulong64Ptr_value(pHash.copy_ulong64Ptr(tmphash))
-        #print "files[%d]: %s hashlist[i] :%s hash = %x"%( i, filename, hashlist[i].this ,tmphash )
-        hashlist[count].id = filename
-        hashlist[count].hash_length = 1
-        print "files[0] hashlist[0] :%s "%( hashlist[0].this )
-        print "files[%d]: %s hashlist[%d] :%s hash = %x"%( i, filename, count, hashlist[count].this ,tmphash )
-        count+=1
-        l.append(tmp)
-      print "files[%d]: %s hashlist[i] :%s hash = %x"%( 5, filename, hashlist[5].this ,tmphash )
-    #enddebug
-    
   #
   # arg 2 must be DP**
   # hashlist is an array. hashlist.cast().this is DP *
@@ -209,6 +179,7 @@ def main(argv):
   ###hashlist2=pHash.copy_DPptrFunc(hashlist1)
   ## ok working
   ##hashlist2=pHash.copy_DPptrFunc(hashlist.cast().this)
+
   # method with DPArray being a DP **
   #print hashlist.cast()
   hashlist2=hashlist.cast()
@@ -235,20 +206,20 @@ def main(argv):
   print "save: ret code %d"%(ret)
 
 
-  print '%s'%( mvpfile)
+  #print '%s'%( mvpfile)
   
-  print '%s'%(mvpfile.filename)
+  #print '%s'%(mvpfile.filename)
   #segfault
   #print '%s'%(mvpfile.buf)
-  print '%s'%(mvpfile.file_pos)
-  print '%s'%(mvpfile.fd)
-  print '%s'%(mvpfile.filenumber)
-  print '%s'%(mvpfile.nbdbfiles)
-  print '%s'%(mvpfile.branchfactor)
-  print '%s'%(mvpfile.pathlength)
-  print '%s'%(mvpfile.leafcapacity)
-  print '%s'%(mvpfile.pgsize)
-  print '%s'%(mvpfile.hash_type)
+  #print '%s'%(mvpfile.file_pos)
+  #print '%s'%(mvpfile.fd)
+  #print '%s'%(mvpfile.filenumber)
+  #print '%s'%(mvpfile.nbdbfiles)
+  #print '%s'%(mvpfile.branchfactor)
+  #print '%s'%(mvpfile.pathlength)
+  #print '%s'%(mvpfile.leafcapacity)
+  #print '%s'%(mvpfile.pgsize)
+  #print '%s'%(mvpfile.hash_type)
   #print '%s'%(mvpfile.hashdist)
 
 
