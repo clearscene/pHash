@@ -41,21 +41,33 @@ or distutils
 %module(directors="1") pHash
 %{
 
-typedef struct ph_datapoint * DPptr ;
-typedef void * voidPtr;
-
 #include "pHash.h"
 
+typedef void * voidPtr;
+
+typedef struct ph_datapoint * DPptr ;
+typedef struct ph_projections * ProjectionsPtr;
+typedef struct ph_feature_vector * FeaturesPtr;
+typedef struct ph_digest * DigestPtr;
+typedef struct ph_hash_point * TxtHashPointPtr;
+typedef struct ph_match * TxtMatchPtr;
+
+
+
+/*
+http://www.swig.org/Doc1.3/SWIGDocumentation.html#Scripting_nn4
+
+And now, a final note about function pointer support. Although SWIG does not
+ normally allow callback functions to be written in the target language, 
+ this can be accomplished with the use of typemaps and other advanced SWIG features. 
+ This is described in a later chapter.
+*/
+/* call back function for mvp tree functions - to performa distance calc.'s*/
 //typedef float (*hash_compareCB)(DP *pointA, DP *pointB);
 extern hash_compareCB my_callback;
-
 extern void my_set_callback(MVPFile *m, PyObject *PyFunc);
 
 %}
-
-
-%feature("director") MVPFile; 
-
 
 
 /* 
@@ -64,12 +76,9 @@ ignoring static, private or useless function
 or non-compatible 
 */
 %ignore ph_readfilenames;
-
 %ignore ph_dct;
 %ignore ph_dct_matrix;
-
 %ignore _ph_image_digest;
-
 %ignore _ph_map_mvpfile;
 %ignore _ph_unmap_mvpfile;
 %ignore _ph_save_mvptree;
@@ -79,17 +88,11 @@ or non-compatible
 
 
 
-
-
-%newobject ph_texthash;
-
-/* Urgently important to define mallocs... */
-%newobject ph_malloc_datapoint;
-
 /* -------------------------- std */
 
 
 /*
+LARGE FILE SUPPORT NEEDED.
 sizeof(off_t) problem :
 
 /usr/include/python2.6/pyconfig.h:1016: 
@@ -120,76 +123,24 @@ Solution : use AC_SYS_LARGEFILE in pHash configure.ac
 
 */
 typedef uint64_t off_t;
-
-//typedef uint64_t ulong64;
-
-
-// redefine DP.hash to be a ulong64 *.
-// we can't access void * data. 
-
-
-typedef struct ph_datapoint {
-    char *id;
-%extend {
-    ulong64 * hash;
-    }
-    float *path;
-    uint32_t hash_length;
-    uint8_t hash_type;
-}DP;
-
-
-
-typedef struct ph_datapoint * DPptr ;
-
 typedef void * voidPtr;
 
-
-/*
-http://www.swig.org/Doc1.3/SWIGDocumentation.html#Scripting_nn4
-
-And now, a final note about function pointer support. Although SWIG does not
- normally allow callback functions to be written in the target language, 
- this can be accomplished with the use of typemaps and other advanced SWIG features. 
- This is described in a later chapter.
-*/
-/* call back function for mvp tree functions - to performa distance calc.'s*/
-//typedef float (*hash_compareCB)(DP *pointA, DP *pointB);
-// SEE lOWER 
+typedef struct ph_datapoint * DPptr ;
+typedef struct ph_projections * ProjectionsPtr;
+typedef struct ph_feature_vector * FeaturesPtr;
+typedef struct ph_digest * DigestPtr;
+typedef struct ph_hash_point * TxtHashPointPtr;
+typedef struct ph_match * TxtMatchPtr;
 
 
-
-/*
-typedef struct ph_mvp_file {
-    char *filename; 
-    char *buf;
-    off_t file_pos;
-    int fd;
-    uint8_t filenumber;
-    uint8_t nbdbfiles;
-    uint8_t branchfactor; 
-    uint8_t pathlength;  
-    uint8_t leafcapacity; 
-    off_t pgsize;
-    HashType hash_type;
-    //%extend {
-    //  float hashdist;
-    //}
-    hash_compareCB hashdist;
-} MVPFile ;
-*/
 
 /*
 We  declare INPUT and OUTPUT parameters.
 Output parameters are not longer args, but part of the return value tuple/sequence. 
 */
-
-//%apply int *OUTPUT { int *rows, int *columns };
-
-
 DP* ph_malloc_datapoint(int hashtype); //OK
-//void ph_free_datapoint(DP *INPUT);
-//const char* ph_about(); //OK
+void ph_free_datapoint(DP *INPUT); //OK
+const char* ph_about(); //OK
 int ph_radon_projections(const CImg<uint8_t> &INPUT,int N,Projections &OUTPUT); // not use in examples 
 int ph_feature_vector(const Projections &INPUT,Features &OUTPUT); // not use in examples 
 int ph_dct(const Features &INPUT, Digest &OUTPUT); // not use in examples 
@@ -235,14 +186,6 @@ namespace cimg_library {}
 /* probleme sur primary-expression */  
 %include "pHash.h" 
 
-
-
-%extend DP {
-    ulong64 * hash;
-
-}
-
-
 /* from http://www.swig.org/papers/PyTutorial97/PyTutorial97.pdf p75 */
 // we define a template for array access
 %define LISTGETITEM(type)
@@ -254,70 +197,50 @@ namespace cimg_library {}
 
 %enddef
 
-LISTGETITEM(FileIndex)
+//LISTGETITEM(FileIndex)
 //LISTGETITEM(DP)
 //LISTGETITEM(DPptr)
-LISTGETITEM(slice)
-LISTGETITEM(MVPFile)
-LISTGETITEM(Projections)
-LISTGETITEM(Features)
-LISTGETITEM(Digest)
-LISTGETITEM(TxtHashPoint)
-LISTGETITEM(TxtMatch)
+//LISTGETITEM(slice)
+//LISTGETITEM(MVPFile)
+//LISTGETITEM(Projections)
+//LISTGETITEM(Features)
+//LISTGETITEM(Digest)
+//LISTGETITEM(TxtHashPoint)
+//LISTGETITEM(TxtMatch)
  
 // is enum
 //LISTGETITEM(MVPRetCode)
 
 
-//%array_class(TxtHashPoint,TxtHashPointArrayIn);
-%array_functions(TxtHashPoint,TxtHashPointArray)
-%array_functions(TxtMatch,TxtMatchArray)
+// DOES WORK AS INTENDED. Your are working with pointers here 
+%array_class(DP,DPArray);
+%array_class(DPptr,DPptrArray);
+%array_class(Projections,ProjectionsArray);
+%array_class(Features,FeaturesArray);
+%array_class(Digest,DigestArray);
+%array_class(TxtHashPoint,TxtHashPointArray)
+%array_class(TxtMatch,TxtMatchArray)
+%array_class(TxtHashPointPtr,TxtHashPointPtrArray)
+%array_class(TxtMatchPtr,TxtMatchPtrArray)
 
 
-// DOES NOT WORK AS INTENDED %array_class(DP,DPArray);
-%array_class(DPptr,DPArray);
 %array_class(ulong64,ulong64Array);
 
 %pointer_functions(ulong64,ulong64Ptr);
 %pointer_class(ulong64,ulong64Class);
 
-/*
-Pointer access to DP ** ....
-
-typedef must be declared in the headers of the .i 
-AND in the %include section.
-
-
-# method with pointer_function // 
-###hashlist1=pHash.copy_DPFunc(hashlist.cast().this)
-###hashlist2=pHash.copy_DPptrFunc(hashlist1)
-hashlist2=pHash.copy_DPptrFunc(hashlist.cast().this)
-hashlistf=hashlist2
-
-# method with pointer_class
-#hashlist1=pHash.DPClass.frompointer(hashlist.cast().this)
-#hashlist2=pHash.DPptrClass()
-#hashlist2.assign(hashlist1.cast().this)
-#hashlistf=hashlist2.cast()
-*/
-%pointer_class(DP,DPClass);
-%pointer_class(DPptr,DPptrClass);
-%pointer_functions(DP,DPFunc);
-%pointer_functions(DPptr,DPptrFunc);
-
-%array_class(DPptr,DPptrArray);
 
 /*
 Access to void * hash, as a struct member 
 */
-%pointer_functions(voidPtr,myPtr);
+%pointer_functions(voidPtr,voidPtr);
 
 /*
 cast function helpers ...
 */
 // ulong64* voidToULong64(void *val) ;
-//%pointer_cast (void *, ulong64 *, voidToULong64 );
-//%pointer_cast (ulong64 *, void *, ulong64ToVoid );
+%pointer_cast (void *, ulong64 *, voidToULong64 );
+%pointer_cast (ulong64 *, void *, ulong64ToVoid );
 
 //%naturalvar DP::hash;
 
@@ -350,9 +273,6 @@ void MVPFile_hashdist_set(MVPFile * m, float * f) {
 
 %}
 
-%newobject ph_texthash;
-
-%newobject ph_malloc_datapoint;
 
 
 

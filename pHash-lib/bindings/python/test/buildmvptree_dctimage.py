@@ -27,68 +27,10 @@ import locale,logging,os,sys,time
 from os.path import join
 
 def distancefunc(pa,pb):
-    #print ': distancefunc a.hash',pa.hash, pHash.ulong64Ptr_value(pb.hash)
-    #d = pHash.ph_hamming_distance(pHash.copy_ulong64Ptr(pa.hash), pHash.copy_ulong64Ptr(pb.hash))
-    d = pHash.ph_hamming_distance(pHash.ulong64Ptr_value(pa.hash), pHash.ulong64Ptr_value(pb.hash))
-    #d = pHash.ph_hamming_distance(pa.hash, pb.hash)
-    #print "%d = distancefunc %s %s"%(d,pa.this,pb.this)
-    return d
-
-# if you dont keep ref to mall.this or to mall, it's garbaged..
-# if it's garbaged, malloc will realloc
-def test():
-  print pHash.UINT64ARRAY
-  l=[]
-  for i in range(0,10):
-    mall=pHash.ph_malloc_datapoint(pHash.UINT64ARRAY)
-    t=mall.this
-    print '%s'%(t)
-    #l.append(t)
-    l.append(mall)
-#idem than malloc
-def test2():
-  l=[]
-  for i in range(0,10):
-    mall=pHash.DP()
-    t=mall.this
-    print '%s'%(t)
-    #l.append(t)
-    #l.append(mall)
-
-def test3():
-  l1=[]
-  l=pHash.DPArray(10)
-  for i in range(0,10):
-    mall=pHash.DP()
-    t=mall.this
-    print '%s'%(t)
-    l[i]=t
-    l1.append(t)
-  print 'Malloc or changed car python list retain ref. DPArray doesnt.'
-  print 'worse, DPArray is fully bloated'
-  print "%s"%(l[0].this)
-  print "%s"%(l[3].this)
-
-def test4():
-  l1=[]
-  #l=pHash.DPptrArray(10)
-  l=pHash.DPArray(10)
-  ret,tmphash=pHash.ph_dct_imagehash('')
-  for i in range(0,10):
-    mall=pHash.DP()
-    t=mall.this
-    print '%s'%(t)
-    l[i]=mall
-    l1.append(mall)
-    l[i].hash = pHash.copy_ulong64Ptr(tmphash)
-    l[i].id = 'plpopl,psk'
-    l[i].hash_length = 1
-    print "files[%d]: %s hashlist[i] :%s hash = %x"%( i, l[i].id, l[i] ,l[i].hash )
-
-  print 'Malloc or changed car python list retain ref. DPArrayPtr doesnt.'
-  print 'BUT DPptr Array is OK'
-  for i in range(0,10):
-    print "%s"%(l[i].this)
+  # pa.hash is a void * pointer.
+  # we need to cast it into ulong64* AND get it's value
+  d = pHash.ph_hamming_distance(pHash.ulong64Ptr_value(pHash.voidToULong64(pa.hash)), pHash.ulong64Ptr_value(pHash.voidToULong64(pb.hash)))
+  return d
 
 
 def main(argv):
@@ -100,11 +42,6 @@ def main(argv):
   #logging.basicConfig(level=logging.INFO)
   logging.basicConfig(level=logging.DEBUG)	
   print pHash.ph_about()
-
-  debug=False
-
-  #test4()
-  #return
 
   if (len(argv) < 2):
     print "not enough input args"
@@ -120,7 +57,6 @@ def main(argv):
   mvpfile.leafcapacity = 23 #50
   mvpfile.pgsize = 4096 #8192
   mvpfile.filename = filename
-  # @TODO
   #mvpfile.hashdist = distancefunc #save: ret code 17
   pHash.my_set_callback(mvpfile,distancefunc)
   mvpfile.hash_type =  pHash.UINT64ARRAY
@@ -132,109 +68,53 @@ def main(argv):
     nbfiles=len(files)
     print "nbfiles = %d"% nbfiles
     #allocate a list of nbfiles elements # hashlist = (DP**)malloc(nbfiles*sizeof(DP*));
-    #array_class - malloc hashlist
-    #hashlist=list() 
-    hashlist=pHash.DPArray(nbfiles)
-    l=[]
+    hashlist=pHash.DPptrArray(nbfiles)
     count = 0
-    if ( not debug):
-      for i in range(0,nbfiles):
-        filename=os.path.normpath(os.path.join(root,files[i]) )
-        # malloc DP or use pHash.DP()
-        tmp=pHash.DP()
-        hashlist[count]=tmp
-        #hashlist[count]=pHash.ph_malloc_datapoint(mvpfile.hash_type)
-        if (hashlist[count] is None):
-          print "mem alloc error"
-          return -4
-        #print 'debug'
-        ret,tmphash=pHash.ph_dct_imagehash(filename)
-        if ( ret < 0):
-          print "unable to get hash"
-          continue
-
-        # we can't assign .hash to hashlist[count].hash = tmphash because .hash is a pointer
-        # malloc .hash
-        # we use ulong64Ptr instead of voidPtr because .. it's a ulong64 ?
-        hashlist[count].hash = pHash.copy_ulong64Ptr(tmphash)
-        
-        print "files[%d]: %s hash = %x"%( i, filename, tmphash )
-        hashlist[count].id = filename
-        hashlist[count].hash_length = 1
-        count+=1
-        l.append(tmp)
-  #
-  # arg 2 must be DP**
-  # hashlist is an array. hashlist.cast().this is DP *
-  # hashlist is proxy to DPClass ( proxy to DP*)
-  # hashlist.cast is proxy DP* 
-  # we need a pointer on hashlist.cast()[0] ->
-  #      TypeError: (pHash.)'DP' object does not support indexing
-  # hashlist.cast().this is a pointer to the DP[0]  ( SWIG Object to DP *)
-  # 
-  #
-
-  # method with pointer_function // 
-  ###hashlist1=pHash.copy_DPFunc(hashlist.cast().this)
-  ###hashlist2=pHash.copy_DPptrFunc(hashlist1)
-  ## ok working
-  ##hashlist2=pHash.copy_DPptrFunc(hashlist.cast().this)
-
-  # method with DPArray being a DP **
-  #print hashlist.cast()
-  hashlist2=hashlist.cast()
-
-  hashlistf=hashlist2
-
-  #print 'hashlist2',hashlist2 
-  # method with pointer_class
-  #hashlist1=pHash.DPClass.frompointer(hashlist.cast().this)
-  #hashlist2=pHash.DPptrClass()
-  #hashlist2.assign(hashlist1.cast().this)
-  #hashlistf=hashlist2.cast()
-
-  #print 'count',count  
-  #print
-  #print 'callsizeof ',pHash.print_sizeof_MVPFile()
-  #print 'hashlistf',hashlistf
-  #for i in range(0,count):
-  #  print 'hashlist[%d]  %s'%(i,hashlist[i].this)
-  #  #
+    for i in range(0,nbfiles):
+      filename=os.path.normpath(os.path.join(root,files[i]) )
+      # malloc DP or use pHash.DP() // pHash.ph_malloc_datapoint(mvpfile.hash_type)
+      #tmp=pHash.ph_malloc_datapoint(mvpfile.hash_type)
+      tmp=pHash.DP()
+      if (tmp is None):
+        print "mem alloc error"
+        return -4
+      tmp.hash_type = mvpfile.hash_type
+      # say to python, to NOT garbage collect DP reference.
+      tmp.thisown = 0
+      # store the ref.
+      hashlist[count]=tmp
+      # calculate image hash
+      ret,tmphash=pHash.ph_dct_imagehash(filename)
+      if ( ret < 0):
+        print "unable to get hash"
+        continue
+      # we can't assign .hash to hashlist[count].hash = tmphash because .hash is a pointer
+      # we use ulong64Ptr instead of voidPtr because .. it's a ulong64 ? casting is dynamic
+      hashlist[count].hash = pHash.copy_ulong64Ptr(tmphash)
+      #
+      print "files[%d]: %s hash = %x"%( i, filename, tmphash )
+      hashlist[count].id = filename
+      hashlist[count].hash_length = 1
+      count+=1
+  # method with DPptrArray being a DP **
+  hashlistf=hashlist.cast()
   ret = pHash.ph_save_mvptree(mvpfile, hashlistf, count)
   # ret 11 is null hash distance function
   # save: ret code 17 has callback func. -> not enought hashdist ?
   print "save: ret code %d"%(ret)
-
-
-  #print '%s'%( mvpfile)
+    
   
-  #print '%s'%(mvpfile.filename)
-  #segfault
-  #print '%s'%(mvpfile.buf)
-  #print '%s'%(mvpfile.file_pos)
-  #print '%s'%(mvpfile.fd)
-  #print '%s'%(mvpfile.filenumber)
-  #print '%s'%(mvpfile.nbdbfiles)
-  #print '%s'%(mvpfile.branchfactor)
-  #print '%s'%(mvpfile.pathlength)
-  #print '%s'%(mvpfile.leafcapacity)
-  #print '%s'%(mvpfile.pgsize)
-  #print '%s'%(mvpfile.hash_type)
-  #print '%s'%(mvpfile.hashdist)
-
-
   #free is done by GC .. ?
   #for i in range(0,nbfiles):
-  #  pHash.ph_free_datapoint(hashlist[i])
+  #  pHash.free(hashlist[i].hash)
 
+  #free is NOT done by GC 
+  for i in range(0,nbfiles):
+    pHash.ph_free_datapoint(hashlist[i])
+  
   #free is done by GC .. ?
   #for i in range(0,nbfiles):
   #  pHash.free(files[i])
-
-  #free is done by GC .. ?
-  #for i in range(0,nbfiles):
-  #  pHash.free(hashlist[i]->hash)
-
   # pHash.free(hashlist)
 
 
