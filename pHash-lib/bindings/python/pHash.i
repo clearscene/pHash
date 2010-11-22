@@ -45,6 +45,7 @@ or distutils
 
 //declare pointer types for later use.
 typedef void * voidPtr;
+typedef char * charPtr;
 
 typedef struct ph_datapoint * DPptr ;
 typedef struct ph_projections * ProjectionsPtr;
@@ -53,7 +54,8 @@ typedef struct ph_digest * DigestPtr;
 typedef struct ph_hash_point * TxtHashPointPtr;
 typedef struct ph_match * TxtMatchPtr;
 
-
+// typemap reflecxion :
+// define a typemap into DP for hash...
 
 /*
    python Callbacks function for MVP TREE  
@@ -78,7 +80,7 @@ extern void my_set_callback(MVPFile *m, PyObject *PyFunc);
 ignoring static, private or useless function
 or non-compatible 
 */
-%ignore ph_readfilenames;
+//%ignore ph_readfilenames;
 %ignore ph_dct;
 %ignore ph_dct_matrix;
 %ignore _ph_image_digest;
@@ -139,6 +141,7 @@ Solution : use AC_SYS_LARGEFILE in pHash configure.ac
 */
 typedef uint64_t off_t;
 typedef void * voidPtr;
+typedef char * charPtr;
 
 typedef struct ph_datapoint * DPptr ;
 typedef struct ph_projections * ProjectionsPtr;
@@ -147,6 +150,24 @@ typedef struct ph_digest * DigestPtr;
 typedef struct ph_hash_point * TxtHashPointPtr;
 typedef struct ph_match * TxtMatchPtr;
 
+
+/*
+TYPEMAP FOR INPUT OUTPTU
+*/
+
+/*
+%typemap(in, numinputs=0) DP **OUTPUT (DP **OUTPUT) {
+   $1 = NULL;
+}
+
+
+%typemap(argout) DP **OUTPUT {
+  $result =SWIG_NewPointerObj(SWIG_as_voidptr($1), $1_descriptor, SWIG_POINTER_OWN |  0 );
+}
+*/
+//%apply DP* OUTPUT {DP**OUTPUT}
+//%apply int * OUTPUT {int& OUTPUT }; 
+//%apply DP * OUTPUT {DPptr*OUTPUT}
 
 
 /*
@@ -176,7 +197,7 @@ DP** ph_read_imagehashes(const char *dirname,int capacity, int &OUTPUT);
 uint8_t* ph_mh_imagehash(const char *filename, int &OUTPUT, float alpha=2.0f, float lvl = 1.0f);
 int ph_bitcount8(uint8_t val);
 double ph_hammingdistance2(uint8_t *INPUT, int lenA, uint8_t *INPUT, int lenB);
-//char** ph_readfilenames(const char *dirname,int &OUTPUT);
+char** ph_readfilenames(const char *dirname,int &OUTPUT);
 DP* ph_read_datapoint(MVPFile *INPUT);
 int ph_sizeof_dp(DP *INPUT,MVPFile *INPUT);
 off_t ph_save_datapoint(DP *INPUT, MVPFile *INPUT);
@@ -184,7 +205,7 @@ off_t ph_save_datapoint(DP *INPUT, MVPFile *INPUT);
 //_ph_unmap_mvpfile
 float hammingdistance(DP *INPUT, DP *INPUT);
 //_ph_query_mvptree
-MVPRetCode ph_query_mvptree(MVPFile *INPUT, DP *INPUT, int knearest, float radius, float threshold,   DP **OUTPUT, int &OUTPUT);
+MVPRetCode ph_query_mvptree(MVPFile *INPUT, DP *INPUT, int knearest, float radius, float threshold,   DP **results, int &OUTPUT);
 //ph_save_mvptree
 MVPRetCode ph_save_mvptree(MVPFile *INPUT, DP **INPUT, int nbpoints); //OK
 //ph_add_mvptree
@@ -238,6 +259,7 @@ namespace cimg_library {}
 %array_class(TxtHashPointPtr,TxtHashPointPtrArray)
 %array_class(TxtMatchPtr,TxtMatchPtrArray)
 
+%array_class(charPtr,charPtrArray);
 
 %array_class(ulong64,ulong64Array);
 
