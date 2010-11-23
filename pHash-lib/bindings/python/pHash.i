@@ -46,6 +46,9 @@ or distutils
 //declare pointer types for later use.
 typedef void * voidPtr;
 typedef char * charPtr;
+typedef uint8_t * uint8_tPtr;
+typedef uint16_t * uint16_tPtr;
+typedef uint32_t * uint32_tPtr;
 
 typedef struct ph_datapoint * DPptr ;
 typedef struct ph_projections * ProjectionsPtr;
@@ -142,6 +145,9 @@ Solution : use AC_SYS_LARGEFILE in pHash configure.ac
 typedef uint64_t off_t;
 typedef void * voidPtr;
 typedef char * charPtr;
+typedef uint8_t * uint8_tPtr;
+typedef uint16_t * uint16_tPtr;
+typedef uint32_t * uint32_tPtr;
 
 typedef struct ph_datapoint * DPptr ;
 typedef struct ph_projections * ProjectionsPtr;
@@ -190,28 +196,28 @@ int ph_dct_imagehash(const char* file,ulong64 &OUTPUT); // OK
 //ph_dct_image_hashes
 //ph_getKeyFramesFromVideo
 ulong64* ph_dct_videohash(const char *filename, int &OUTPUT); //OK
-DP** ph_dct_video_hashes(char *files[], int count, int threads = 0);
+DP** ph_dct_video_hashes(char *files[], int count, int threads = 0); // not use in examples 
 double ph_dct_videohash_dist(ulong64 *INPUT, int N1, ulong64 *INPUT, int N2, int threshold=21); //OK
-int ph_hamming_distance(const ulong64 hash1,const ulong64 hash2);
-DP** ph_read_imagehashes(const char *dirname,int capacity, int &OUTPUT);
+int ph_hamming_distance(const ulong64 hash1,const ulong64 hash2); //OK
+DP** ph_read_imagehashes(const char *dirname,int capacity, int &OUTPUT); // not use in examples 
 uint8_t* ph_mh_imagehash(const char *filename, int &OUTPUT, float alpha=2.0f, float lvl = 1.0f);
 int ph_bitcount8(uint8_t val);
 double ph_hammingdistance2(uint8_t *INPUT, int lenA, uint8_t *INPUT, int lenB);
-char** ph_readfilenames(const char *dirname,int &OUTPUT);
-DP* ph_read_datapoint(MVPFile *INPUT);
-int ph_sizeof_dp(DP *INPUT,MVPFile *INPUT);
-off_t ph_save_datapoint(DP *INPUT, MVPFile *INPUT);
+char** ph_readfilenames(const char *dirname,int &OUTPUT); //OK
+DP* ph_read_datapoint(MVPFile *INPUT); // not use in examples 
+int ph_sizeof_dp(DP *INPUT,MVPFile *INPUT); // not use in examples 
+off_t ph_save_datapoint(DP *INPUT, MVPFile *INPUT); // not use in examples 
 //_ph_map_mvpfile
 //_ph_unmap_mvpfile
-float hammingdistance(DP *INPUT, DP *INPUT);
+float hammingdistance(DP *INPUT, DP *INPUT); // not use in examples 
 //_ph_query_mvptree
-MVPRetCode ph_query_mvptree(MVPFile *INPUT, DP *INPUT, int knearest, float radius, float threshold,   DP **results, int &OUTPUT);
+MVPRetCode ph_query_mvptree(MVPFile *INPUT, DP *INPUT, int knearest, float radius, float threshold,   DP **results, int &OUTPUT); // OK
 //ph_save_mvptree
 MVPRetCode ph_save_mvptree(MVPFile *INPUT, DP **INPUT, int nbpoints); //OK
 //ph_add_mvptree
 MVPRetCode ph_add_mvptree(MVPFile *INPUT, DP **INPUT, int nbpoints, int &OUTPUT);
-TxtHashPoint* ph_texthash(const char *filename, int *OUTPUT);
-TxtMatch* ph_compare_text_hashes(TxtHashPoint *INPUT, int N1, TxtHashPoint *INPUT, int N2, int *OUTPUT);
+TxtHashPoint* ph_texthash(const char *filename, int *OUTPUT); //OK
+TxtMatch* ph_compare_text_hashes(TxtHashPoint *INPUT, int N1, TxtHashPoint *INPUT, int N2, int *OUTPUT); // OK
 
 
 
@@ -262,6 +268,12 @@ namespace cimg_library {}
 %array_class(charPtr,charPtrArray);
 
 %array_class(ulong64,ulong64Array);
+%array_class(uint8_t,uint8_tArray);
+%array_class(uint8_tPtr,uint8_tPtrArray);
+%array_class(uint16_t,uint16_tArray);
+%array_class(uint16_tPtr,uint16_tPtrArray);
+%array_class(uint32_t,uint32_tArray);
+%array_class(uint32_tPtr,uint32_tPtrArray);
 
 %pointer_functions(ulong64,ulong64Ptr);
 %pointer_class(ulong64,ulong64Class);
