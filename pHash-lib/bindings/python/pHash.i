@@ -32,6 +32,7 @@ or distutils
 %include "cpointer.i"
 %include "carrays.i"
 %include "cmalloc.i"
+%include "cstring.i"
 // basic typedef ...  
 %include "stdint.i"
 %include "windows.i"
@@ -47,6 +48,7 @@ or distutils
 typedef void * voidPtr;
 typedef char * charPtr;
 typedef uint8_t * uint8_tPtr;
+typedef uint8_tPtr uint8_tPtrPtr;
 typedef uint16_t * uint16_tPtr;
 typedef uint32_t * uint32_tPtr;
 
@@ -75,7 +77,20 @@ And now, a final note about function pointer support. Although SWIG does not
 extern hash_compareCB my_callback;
 extern void my_set_callback(MVPFile *m, PyObject *PyFunc);
 
+/* char ** functions */
+
+/*
+void my_ph_readfilenames(const char *dirname,char *** result,int *len) {
+    int tlen=0;
+   *result = ph_readfilenames(dirname,tlen);
+   (*len)=tlen;   
+}
+*/
+/** Objectivizw MVPTree **/
+
+
 %}
+
 
 
 /* 
@@ -83,7 +98,7 @@ extern void my_set_callback(MVPFile *m, PyObject *PyFunc);
 ignoring static, private or useless function
 or non-compatible 
 */
-//%ignore ph_readfilenames;
+%ignore ph_readfilenames;
 %ignore ph_dct;
 %ignore ph_dct_matrix;
 %ignore _ph_image_digest;
@@ -146,6 +161,7 @@ typedef uint64_t off_t;
 typedef void * voidPtr;
 typedef char * charPtr;
 typedef uint8_t * uint8_tPtr;
+typedef uint8_tPtr uint8_tPtrPtr;
 typedef uint16_t * uint16_tPtr;
 typedef uint32_t * uint32_tPtr;
 
@@ -186,7 +202,7 @@ const char* ph_about(); //OK
 int ph_radon_projections(const CImg<uint8_t> &INPUT,int N,Projections &OUTPUT); // not use in examples 
 int ph_feature_vector(const Projections &INPUT,Features &OUTPUT); // not use in examples 
 int ph_dct(const Features &INPUT, Digest &OUTPUT); // not use in examples 
-int ph_crosscorr(const Digest &INPUT,const Digest &INPUT,double &INPUT, double threshold = 0.90); // not use in examples 
+int ph_crosscorr(const Digest &INPUT,const Digest &INPUT,double &OUTPUT, double threshold = 0.90); // not use in examples 
 //_ph_image_digest
 int ph_image_digest(const char *file, double sigma, double gamma, Digest &OUTPUT,int N=180); // not use in examples 
 //_ph_compare_images
@@ -203,7 +219,7 @@ DP** ph_read_imagehashes(const char *dirname,int capacity, int &OUTPUT); // not 
 uint8_t* ph_mh_imagehash(const char *filename, int &OUTPUT, float alpha=2.0f, float lvl = 1.0f);
 int ph_bitcount8(uint8_t val);
 double ph_hammingdistance2(uint8_t *INPUT, int lenA, uint8_t *INPUT, int lenB);
-char** ph_readfilenames(const char *dirname,int &OUTPUT); //OK
+//char** ph_readfilenames(const char *dirname,int &OUTPUT); //OK
 DP* ph_read_datapoint(MVPFile *INPUT); // not use in examples 
 int ph_sizeof_dp(DP *INPUT,MVPFile *INPUT); // not use in examples 
 off_t ph_save_datapoint(DP *INPUT, MVPFile *INPUT); // not use in examples 
@@ -219,7 +235,25 @@ MVPRetCode ph_add_mvptree(MVPFile *INPUT, DP **INPUT, int nbpoints, int &OUTPUT)
 TxtHashPoint* ph_texthash(const char *filename, int *OUTPUT); //OK
 TxtMatch* ph_compare_text_hashes(TxtHashPoint *INPUT, int N1, TxtHashPoint *INPUT, int N2, int *OUTPUT); // OK
 
+/* char ** return value 
 
+pHash_wrap.cpp:6118: error: cannot convert ‘char**’ to ‘const char*’ for argument ‘1’ to ‘PyObject* SWIG_FromCharPtrAndSize(const char*, size_t)’
+
+*/
+//%cstring_output_allocate_size(char ***result, int *len, free(*$1));
+//void my_ph_readfilenames(const char *dirname,char *** result,int *len);
+
+/*
+replace with python code :
+
+nbfiles=0
+files1=None
+for root, dirs, files in os.walk(dir_name):
+  nbfiles=len(files)
+  print "nbfiles = %d"% nbfiles
+  files1=[os.path.join(root,f) for f in files]
+
+*/
 
 /* http://thread.gmane.org/gmane.comp.programming.swig/12746/focus=12747 */
 namespace cimg_library {}
@@ -265,11 +299,12 @@ namespace cimg_library {}
 %array_class(TxtHashPointPtr,TxtHashPointPtrArray)
 %array_class(TxtMatchPtr,TxtMatchPtrArray)
 
-%array_class(charPtr,charPtrArray);
+// DO NOT DO %array_class(charPtr,charPtrArray);
 
 %array_class(ulong64,ulong64Array);
 %array_class(uint8_t,uint8_tArray);
 %array_class(uint8_tPtr,uint8_tPtrArray);
+%array_class(uint8_tPtrPtr,uint8_tPtrPtrArray);
 %array_class(uint16_t,uint16_tArray);
 %array_class(uint16_tPtr,uint16_tPtrArray);
 %array_class(uint32_t,uint32_tArray);
@@ -371,6 +406,22 @@ typedef float (*hash_compareCB)(DP *pointA, DP *pointB);
 hash_compareCB my_callback = 0;
 
 %}
+
+
+/* replacing C code by easy to use Python code. */
+%pythoncode %{
+import os
+def ph_readfilenames(dirname):
+  files1=[]
+  for root, dirs, files in os.walk(dirname):
+    if (root == dirname):
+      files1=[os.path.join(root,f) for f in files]
+      break
+  files1.sort()
+  return files1
+%}
+
+
 #endif SWIGPYTHON
 
 

@@ -63,14 +63,16 @@ def main(argv):
   nbfiles = 0
   print "using db %s"%( filename)
   print "using dir %s for query files"%( dir_name)
-  ret = pHash.ph_readfilenames(dir_name)
-  #print ret
-  if (type(ret) is int):
-    print "unable to read files from directory"
-    return -2
-  (tmpfiles,nbfiles)=ret
+  nbfiles = 0
+  print "dir name: %s"%( dir_name)
+  nbfiles=0
+  files=None
+  for root, dirs, filest in os.walk(dir_name):
+    nbfiles=len(filest)
+    files=[os.path.join(root,f) for f in filest]
+  files.sort()
   print "nb query files = %d"%( nbfiles)
-  files=pHash.charPtrArray.frompointer(tmpfiles)
+
 
   #DP *query = pHash.ph_malloc_datapoint(mvpfile.hash_type)
   query=pHash.ph_malloc_datapoint(mvpfile.hash_type)
@@ -78,6 +80,7 @@ def main(argv):
     print "mem alloc error"
     return -3
   query.thisown=0
+
   argc=len(argv)+1
   radius = 30.0
   threshold = 15.0

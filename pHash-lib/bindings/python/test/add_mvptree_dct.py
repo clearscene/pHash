@@ -55,12 +55,12 @@ def main(argv):
 
   nbfiles = 0
   print "dir name: %s"%( dir_name)
-  ret = pHash.ph_readfilenames(dir_name)
-  if (type(ret) is int):
-    print "unable to read files from directory"
-    return -2
-  (tmpfiles,nbfiles)=ret
-  files=pHash.charPtrArray.frompointer(tmpfiles)
+  nbfiles=0
+  files=None
+  for root, dirs, filest in os.walk(dir_name):
+    nbfiles=len(filest)
+    files=[os.path.join(root,f) for f in filest]
+  files.sort()
   print "nbfiles = %d"%( nbfiles)
 
   #allocate a list of nbfiles elements # hashlist = (DP**)malloc(nbfiles*sizeof(DP*));

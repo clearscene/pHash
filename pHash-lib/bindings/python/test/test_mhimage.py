@@ -32,6 +32,7 @@ from os.path import join
 #names.sort() ....
 def sort_names(names, L1):
   #
+  _min=None
   #print names
   for i in range(0,L1):
     _min = i
@@ -44,6 +45,7 @@ def sort_names(names, L1):
         names[_min] = swap  
     #
   #
+  return names
 
 
 def main(argv):
@@ -68,32 +70,39 @@ def main(argv):
   level = 1  
 
   nbfiles1=0
-  ret = pHash.ph_readfilenames(dirname1)  
-  if (type(ret) is int):
-    print "unable to read files from directory",dirname1
-    return -2
-  (tmpfiles1,nbfiles1)=ret
-  files1=pHash.charPtrArray.frompointer(tmpfiles1)
-  sort_names(files1,nbfiles1)  
-  #print files1[0]
+  files1=None
+  for root, dirs, files in os.walk(dirname1):
+    nbfiles1=len(files)
+    files1=[os.path.join(root,f) for f in files]
+  files1.sort()
+  #nbfiles1=0
+  #ret = pHash.my_ph_readfilenames(dirname1) 
+  #if (ret is None):
+  #  print "unable to read files from directory",dirname1
+  #  return -2
+  #if (type(ret) is int):
+  #  print "unable to read files from directory",dirname1
+  #  return -2
+  #print ret
+  #(tmpfiles1,nbfiles1)=ret
+  #files1=pHash.charPtrArray.frompointer(tmpfiles1)
+  #files1=sort_names(files1,nbfiles1)
+  #list(files1)
+  #print files1
 
   nbfiles2=0
-  ret = pHash.ph_readfilenames(dirname2)  
-  if (type(ret) is int):
-    print "unable to read files from directory",dirname2
-    return -2
-  (tmpfiles2,nbfiles2)=ret
-  files2=pHash.charPtrArray.frompointer(tmpfiles2)
-  sort_names(files2,nbfiles2)  
-  #print files1[0]
-  #print files2[0]
+  files2=None
+  for root, dirs, files in os.walk(dirname2):
+    nbfiles2=len(files)
+    files2=[os.path.join(root,f) for f in files]
+  files2.sort()
 
   if (nbfiles1 != nbfiles2):
     print "number files in both directories not equal"  
     return 1
 
   #uint8_t **hash1 = (uint8_t**)malloc(nbfiles1*sizeof(uint8_t*))  
-  hash1=pHash.uint8_tPtrArray(nbfiles1)
+  hash1=pHash.uint8_tPtrPtrArray(nbfiles1)
   hash2 = 0  
   hashlen1=0
   hashlen2=0  
@@ -102,9 +111,6 @@ def main(argv):
   print "***************" 
   for i in range(0,nbfiles1):
     print "file1: %s" %(files1[i])
-    #f1=files1[i]
-    #print files1[i]
-    print 'TTTTTTTTTTTTTTTTTTTTTTTTTTTTT'    
     ret = pHash.ph_mh_imagehash(files1[i], alpha, level)  
     if (type(ret) is int):
       continue  
@@ -112,8 +118,6 @@ def main(argv):
 
     f2=files2[i]
     print "file2: %s"%(files2[i])  
-    #print files1[i]
-    print 'QQQQQQQQQQQQQQQQQQQQQQQQQQQQQ'    
     ret = pHash.ph_mh_imagehash(files2[i], alpha, level)  
     if (type(ret) is int):
       continue  
