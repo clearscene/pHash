@@ -28,12 +28,12 @@ Python Bindings for pHash perceptual comparaison library
 
     url="http://packages.python.org/python-phash/",
     download_url="http://github.com/trolldbois/python-phash/tree/master",
-    license='MIT',
+    license='GPL',
     classifiers=[
         "Topic :: Multimedia",
         "Environment :: Console",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: GPL",
         "Programming Language :: Python",
         "Development Status :: 4 - Beta",
     ],
