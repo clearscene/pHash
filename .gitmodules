@@ -1,0 +1,3 @@
+[submodule "bindings/ruby"]
+	path = bindings/ruby
+	url = git://github.com/mperham/phashion.git
