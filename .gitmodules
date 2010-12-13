@@ -1,3 +1,6 @@
 [submodule "bindings/ruby"]
 	path = bindings/ruby
 	url = git://github.com/mperham/phashion.git
+[submodule "examples/ruby-sinatra"]
+	path = examples/ruby-sinatra
+	url = git://github.com/sdepold-fhb/phash-demonstrator.git
