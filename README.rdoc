@@ -14,3 +14,4 @@ pHash is an open source software library released under the GPLv3 license that i
 - Christoph Zauner - Programmer
 
 = Contributors
+- Loic Jaquemet - Python binding
