@@ -21,6 +21,9 @@
     D Grant Starkweather - dstarkweather@phash.org
 
 */
+
+#include "config.h"
+
 #include <stdio.h>
 #include <math.h>
 #include "pHash.h"

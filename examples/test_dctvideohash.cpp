@@ -22,6 +22,7 @@
 
 */
 
+#include "config.h"
 
 #include "stdio.h"
 #include "pHash.h"
