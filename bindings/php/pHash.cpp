@@ -103,7 +103,7 @@ extern "C" void ph_txt_hash_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 /* }}} */
 
 /* {{{ pHash_functions[] */
-function_entry pHash_functions[] = {
+zend_function_entry pHash_functions[] = {
 #if HAVE_VIDEO_HASH
 	PHP_FE(ph_dct_videohash    , ph_dct_videohash_arg_info)
 #endif /* HAVE_VIDEO_HASH */
