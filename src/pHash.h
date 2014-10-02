@@ -328,7 +328,7 @@ static CImg<float>* ph_dct_matrix(const int N);
 /*! /brief compute dct robust image hash
  *  /param file string variable for name of file
  *  /param hash of type ulong64 (must be 64-bit variable)
- *  /return int value - -1 for failure, 1 for success
+ *  /return int value - -1 for failure, 0 for success
  */
 int ph_dct_imagehash(const char* file,ulong64 &hash);
 #endif
