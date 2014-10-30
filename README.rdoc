@@ -1,4 +1,4 @@
-# This project is not maintained! 
+= This project is not maintained! 
 If you want to take the ownership of it, please ping me or open an issue.
 
 = Some notes to the repository
