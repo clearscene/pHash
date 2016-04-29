@@ -1,9 +1,8 @@
-= This project is not maintained! 
-If you want to take the ownership of it, please ping me or open an issue.
 
 = Some notes to the repository
-I created this repository because of getting pull request in one of my projects, including extensions for the library. I really have no idea if there is another, more official repository out there, which I just cannot find.
-If so, let me know. If not, use this one. The repository started with the downloadable version 0.9.4. The following information have been taken from the official website http://phash.org
+This repository has been created because the official pHash project (http://phash.org) does not have a public code RCS. The intension being that this repo is used for public co-operation which will be fed back to the main project. Obviously, any further releases from the official source will be pulled in here also.
+
+The repository started with the downloadable version 0.9.4. The following information has been taken from the official website http://phash.org
 
 = What is a perceptual hash?
 A perceptual hash is a fingerprint of a multimedia file derived from various features from its content. Unlike cryptographic hash functions which rely on the avalanche effect of small changes in input leading to drastic changes in the output, perceptual hashes are "close" to one another if the features are similar.
