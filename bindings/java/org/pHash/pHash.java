@@ -1,3 +1,5 @@
+package org.pHash;
+
 import java.io.*;
 
 public class pHash

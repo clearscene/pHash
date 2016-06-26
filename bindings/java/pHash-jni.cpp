@@ -34,20 +34,32 @@
  
 jfieldID dctImHash_hash = NULL; 
 jfieldID mhImHash_hash = NULL; 
+#ifdef HAVE_VIDEO_HASH
 jfieldID vidHash_hash = NULL; 
+#endif
+#ifdef HAVE_AUDIO_HASH
 jfieldID audioHash_hash = NULL; 
+#endif
 
 jfieldID hash_filename = NULL; 
 
 jclass dctImClass = NULL;
 jclass mhImClass = NULL;
+#ifdef HAVE_VIDEO_HASH
 jclass vidClass = NULL;
+#endif
+#ifdef HAVE_AUDIO_HASH
 jclass audioClass = NULL;
+#endif
 
 jmethodID dctImCtor = NULL;
 jmethodID mhImCtor = NULL;
+#ifdef HAVE_VIDEO_HASH
 jmethodID vidCtor = NULL;
+#endif
+#ifdef HAVE_AUDIO_HASH
 jmethodID audioCtor = NULL;
+#endif
 
 typedef enum ph_jni_hash_types
 {
@@ -67,6 +79,7 @@ typedef struct ph_jni_hash_classes
 	jfieldID *hashID;
 } jniHashes;
 
+#ifdef HAVE_VIDEO_HASH
 float video_distance(DP *a, DP *b)
 {
 	ulong64 *hash1 = (ulong64 *)a->hash;
@@ -74,6 +87,7 @@ float video_distance(DP *a, DP *b)
 	double sim = ph_dct_videohash_dist(hash1, a->hash_length, hash2, b->hash_length, 21);
 	return (float)sim;
 }
+#endif
 
 float dctImage_distance(DP *pntA, DP *pntB)
 {
@@ -92,6 +106,7 @@ float mhImage_distance(DP *a, DP *b)
     	return exp(res);
 }
 
+#ifdef HAVE_AUDIO_HASH
 float audio_distance(DP *dpA, DP *dpB)
 {
 	uint32_t *hash1 = (uint32_t*)dpA->hash;
@@ -114,29 +129,33 @@ float audio_distance(DP *dpA, DP *dpB)
     	double res = 1000*(1-maxC);
     	return (float)res;
 }
-
+#endif
 
 const static jniHashes hashes[] = 
 			{ 	
 				{&mhImClass, BYTEARRAY, mhImage_distance, IMAGE_HASH, &mhImCtor, &mhImHash_hash}, 
 				{&dctImClass, UINT64ARRAY, dctImage_distance, IMAGE_HASH, &dctImCtor, &dctImHash_hash},
+#ifdef HAVE_VIDEO_HASH                                
 				{&vidClass, UINT64ARRAY, video_distance, VIDEO_HASH, &vidCtor, &vidHash_hash}, 
+#endif
+#ifdef HAVE_AUDIO_HASH
 				{&audioClass, UINT32ARRAY, audio_distance, AUDIO_HASH, &audioCtor, &audioHash_hash},
+#endif
 			};
 
-JNIEXPORT jboolean JNICALL Java_MVPTree_create
+JNIEXPORT jboolean JNICALL Java_org_pHash_MVPTree_create
   (JNIEnv *e, jobject ob, jobjectArray hashArray)
 {
 	jint hashLen;
 	if(hashArray == NULL || (hashLen = e->GetArrayLength(hashArray)) == 0)
 		return JNI_FALSE;
 
-	jstring mvp = (jstring)e->GetObjectField(ob, e->GetFieldID(e->FindClass("MVPTree"), "mvpFile",
+	jstring mvp = (jstring)e->GetObjectField(ob, e->GetFieldID(e->FindClass("org/pHash/MVPTree"), "mvpFile",
 										"Ljava/lang/String;"));
 	
 	MVPFile mvpfile;
 	ph_mvp_init(&mvpfile);
-	mvpfile.filename = strdup(e->GetStringUTFChars(mvp, 0));
+	mvpfile.filename = (char *) e->GetStringUTFChars(mvp, 0);
 	jniHashType type;
 	jobject htype = e->GetObjectArrayElement(hashArray, 0);
 	for(int i = 0; i < sizeof(hashes)/sizeof(hashes[0]); i++)
@@ -190,6 +209,7 @@ JNIEXPORT jboolean JNICALL Java_MVPTree_create
 
 
 				break;
+#ifdef HAVE_VIDEO_HASH
 			case VIDEO_HASH:
 				{
 				int len;
@@ -210,6 +230,8 @@ JNIEXPORT jboolean JNICALL Java_MVPTree_create
                                 hashlist[i]->hash_length = len;
 				}
 				break;
+#endif
+#ifdef HAVE_AUDIO_HASH
 			case AUDIO_HASH:
 				const float threshold = 0.30;
 				const int block_size = 256;
@@ -231,6 +253,7 @@ JNIEXPORT jboolean JNICALL Java_MVPTree_create
 					return JNI_FALSE;
 				}
 				break;
+#endif
 		}
 		
 		e->ReleaseStringUTFChars(fname, path);
@@ -247,11 +270,10 @@ JNIEXPORT jboolean JNICALL Java_MVPTree_create
 
 	free(hashlist);
 	e->ReleaseStringUTFChars(mvp, mvpfile.filename);
-	free(mvpfile.filename);
 	return (int)ret;
 }
 
-JNIEXPORT jobjectArray JNICALL Java_MVPTree_query
+JNIEXPORT jobjectArray JNICALL Java_org_pHash_MVPTree_query
   (JNIEnv *e, jobject ob, jobject hashObj, jfloat radius, 
 	jfloat thresh, jint max)
 {
@@ -260,10 +282,10 @@ JNIEXPORT jobjectArray JNICALL Java_MVPTree_query
 	jniHashType type;	
 	ph_mvp_init(&mvpfile);
 	
-	jstring mvp = (jstring)e->GetObjectField(ob, e->GetFieldID(e->FindClass("MVPTree"), "mvpFile",
+	jstring mvp = (jstring)e->GetObjectField(ob, e->GetFieldID(e->FindClass("org/pHash/MVPTree"), "mvpFile",
 										"Ljava/lang/String;"));
 	
-	mvpfile.filename = strdup(e->GetStringUTFChars(mvp, 0));
+	mvpfile.filename = (char *) e->GetStringUTFChars(mvp, 0);
 	int i;
 	for(i = 0; i < sizeof(hashes)/sizeof(hashes[0]); i++)
 	{
@@ -306,6 +328,7 @@ JNIEXPORT jobjectArray JNICALL Java_MVPTree_query
 			}
 			break;
 		}
+#ifdef HAVE_VIDEO_HASH
 		case VIDEO_HASH:
 		{
 			jlongArray l = (jlongArray)e->GetObjectField(hashObj, vidHash_hash);
@@ -314,6 +337,8 @@ JNIEXPORT jobjectArray JNICALL Java_MVPTree_query
                         query->hash = (ulong64*)h;
 			break;
 		}
+#endif
+#ifdef HAVE_AUDIO_HASH
 		case AUDIO_HASH:
 		{
 			hashList = (jintArray)e->GetObjectField(hashObj, audioHash_hash);
@@ -322,6 +347,7 @@ JNIEXPORT jobjectArray JNICALL Java_MVPTree_query
 			query->hash = (uint32_t*)hash_list;
 			break;
 		}
+#endif
 	}
 	int res = ph_query_mvptree(&mvpfile, query, max, radius, 
 					thresh, results, count);
@@ -354,14 +380,18 @@ JNIEXPORT jobjectArray JNICALL Java_MVPTree_query
 						e->SetObjectField(obj, *hashes[i].hashID, hash);
 					}	
 				break;
+#ifdef HAVE_VIDEO_HASH
 				case VIDEO_HASH:
 					e->SetLongField(obj, *hashes[i].hashID, *(jlong *)results[j]->hash);
 					break;
+#endif
+#ifdef HAVE_AUDIO_HASH
 				case AUDIO_HASH:
 					jintArray hashArray = e->NewIntArray(results[j]->hash_length);
 					e->SetIntArrayRegion(hashArray, 0, results[j]->hash_length, (jint *)results[j]->hash); 
 					e->SetObjectField(obj, *hashes[i].hashID, hashArray);
 					break;
+#endif
 			}
 			e->SetObjectArrayElement(ret,j,obj);
 
@@ -377,11 +407,10 @@ JNIEXPORT jobjectArray JNICALL Java_MVPTree_query
 			ph_free_datapoint(results[i]);
 	}
 	free(results);
-	free(mvpfile.filename);
 	return ret;
 }
 
-JNIEXPORT jboolean JNICALL Java_MVPTree_add
+JNIEXPORT jboolean JNICALL Java_org_pHash_MVPTree_add
   (JNIEnv *e, jobject ob, jobjectArray hashArray)
 {
 	MVPFile mvpfile;
@@ -392,7 +421,7 @@ JNIEXPORT jboolean JNICALL Java_MVPTree_add
 	if(hashArray == NULL || (len = e->GetArrayLength(hashArray)) == 0)
 		return JNI_FALSE;
 	
-	jstring mvp = (jstring)e->GetObjectField(ob, e->GetFieldID(e->FindClass("MVPTree"), "mvpFile",
+	jstring mvp = (jstring)e->GetObjectField(ob, e->GetFieldID(e->FindClass("org/pHash/MVPTree"), "mvpFile",
 										"Ljava/lang/String;"));
 	
 	mvpfile.filename = strdup(e->GetStringUTFChars(mvp, 0));
@@ -448,6 +477,7 @@ JNIEXPORT jboolean JNICALL Java_MVPTree_add
 
 			break;
 		}
+#ifdef HAVE_VIDEO_HASH
 		case VIDEO_HASH:
 		{
 			jlongArray l = (jlongArray)e->GetObjectField(hashObj, vidHash_hash);
@@ -456,6 +486,8 @@ JNIEXPORT jboolean JNICALL Java_MVPTree_add
                         newHashes[j]->hash = (ulong64*)h;
 			break;
 		}
+#endif
+#ifdef HAVE_AUDIO_HASH
 		case AUDIO_HASH:
 		{
 			hashList = (jintArray)e->GetObjectField(hashObj, audioHash_hash);
@@ -464,6 +496,7 @@ JNIEXPORT jboolean JNICALL Java_MVPTree_add
 			newHashes[j]->hash = (uint32_t*)hash_list;
 			break;
 		}
+#endif
 	}
 
 
@@ -474,12 +507,14 @@ JNIEXPORT jboolean JNICALL Java_MVPTree_add
 
 	for(int j = 0; j < len; j++)
 	{
+#ifdef HAVE_AUDIO_HASH
 		if(type == AUDIO_HASH)
 		{
 			hashObj = e->GetObjectArrayElement(hashArray, j);
 			hashList = (jintArray)e->GetObjectField(hashObj, audioHash_hash);
 			e->ReleaseIntArrayElements(hashList, (jint *)newHashes[j]->hash, JNI_ABORT);
 		}
+#endif
 		ph_free_datapoint(newHashes[j]);
 	}
 
@@ -490,38 +525,54 @@ JNIEXPORT jboolean JNICALL Java_MVPTree_add
 
 }
 
-JNIEXPORT void JNICALL Java_pHash_pHashInit
+JNIEXPORT void JNICALL Java_org_pHash_pHash_pHashInit
   (JNIEnv *e, jclass cl)
 {
 	
-	dctImClass = (jclass)e->NewGlobalRef(e->FindClass("DCTImageHash"));
-	mhImClass = (jclass)e->NewGlobalRef(e->FindClass("MHImageHash"));
-	audioClass = (jclass)e->NewGlobalRef(e->FindClass("AudioHash"));
-	vidClass = (jclass)e->NewGlobalRef(e->FindClass("VideoHash"));
+	dctImClass = (jclass)e->NewGlobalRef(e->FindClass("org/pHash/DCTImageHash"));
+	mhImClass = (jclass)e->NewGlobalRef(e->FindClass("org/pHash/MHImageHash"));
+#ifdef HAVE_AUDIO_HASH
+	audioClass = (jclass)e->NewGlobalRef(e->FindClass("org/pHash/AudioHash"));
+#endif
+#ifdef HAVE_VIDEO_HASH
+	vidClass = (jclass)e->NewGlobalRef(e->FindClass("org/pHash/VideoHash"));
+#endif
 
         dctImHash_hash = e->GetFieldID(dctImClass, "hash", "J");
 	mhImHash_hash = e->GetFieldID(mhImClass, "hash", "[B");
+#ifdef HAVE_AUDIO_HASH
 	audioHash_hash = e->GetFieldID(audioClass, "hash", "[I");
+#endif
+#ifdef HAVE_VIDEO_HASH
 	vidHash_hash = e->GetFieldID(vidClass, "hash", "[J");
+#endif
 
-	hash_filename = e->GetFieldID(e->FindClass("Hash"), "filename", "Ljava/lang/String;");
+	hash_filename = e->GetFieldID(e->FindClass("org/pHash/Hash"), "filename", "Ljava/lang/String;");
 
 	dctImCtor = e->GetMethodID(dctImClass, "<init>", "()V");
 	mhImCtor = e->GetMethodID(mhImClass, "<init>", "()V");
+#ifdef HAVE_VIDEO_HASH
 	vidCtor = e->GetMethodID(vidClass, "<init>", "()V");
+#endif
+#ifdef HAVE_AUDIO_HASH
 	audioCtor = e->GetMethodID(audioClass, "<init>", "()V");
+#endif
 
 }
-JNIEXPORT void JNICALL Java_pHash_cleanup
+JNIEXPORT void JNICALL Java_org_pHash_pHash_cleanup
   (JNIEnv *e, jclass cl)
 {
 	e->DeleteGlobalRef(mhImClass);
 	e->DeleteGlobalRef(dctImClass);
+#ifdef HAVE_VIDEO_HASH        
 	e->DeleteGlobalRef(vidClass);
+#endif
+#ifdef HAVE_AUDIO_HASH
 	e->DeleteGlobalRef(audioClass);
+#endif
 
 }
-JNIEXPORT jdouble JNICALL Java_pHash_imageDistance
+JNIEXPORT jdouble JNICALL Java_org_pHash_pHash_imageDistance
   (JNIEnv *e, jclass cl, jobject hash1, jobject hash2)
 {
 	if(e->IsInstanceOf(hash1, dctImClass) && e->IsInstanceOf(hash2, dctImClass))
@@ -549,7 +600,7 @@ JNIEXPORT jdouble JNICALL Java_pHash_imageDistance
 }
 
 #ifdef HAVE_AUDIO_HASH
-JNIEXPORT jdouble JNICALL Java_pHash_audioDistance
+JNIEXPORT jdouble JNICALL Java_org_pHash_pHash_audioDistance
   (JNIEnv *e, jclass cl, jobject audioHash1, jobject audioHash2)
 {
 
@@ -591,7 +642,7 @@ JNIEXPORT jdouble JNICALL Java_pHash_audioDistance
 }
 #endif
 
-JNIEXPORT jobject JNICALL Java_pHash_dctImageHash
+JNIEXPORT jobject JNICALL Java_org_pHash_pHash_dctImageHash
   (JNIEnv *e, jclass cl, jstring f)
 {
     
@@ -609,7 +660,7 @@ JNIEXPORT jobject JNICALL Java_pHash_dctImageHash
 	
 }
 
-JNIEXPORT jobject JNICALL Java_pHash_mhImageHash
+JNIEXPORT jobject JNICALL Java_org_pHash_pHash_mhImageHash
   (JNIEnv *e, jclass cl, jstring f)
 {
     
@@ -635,7 +686,7 @@ JNIEXPORT jobject JNICALL Java_pHash_mhImageHash
 }
 #ifdef HAVE_VIDEO_HASH
 
-JNIEXPORT jdouble JNICALL Java_pHash_videoDistance
+JNIEXPORT jdouble JNICALL Java_org_pHash_pHash_videoDistance
   (JNIEnv *e, jclass cl, jobject vidHash1, jobject vidHash2, jint thresh)
 {
 
@@ -663,7 +714,7 @@ JNIEXPORT jdouble JNICALL Java_pHash_videoDistance
 	e->ReleaseLongArrayElements(hash2, (jlong*)hash2_n, 0);
 	return sim;	
 }
-JNIEXPORT jobject JNICALL Java_pHash_videoHash
+JNIEXPORT jobject JNICALL Java_org_pHash_pHash_videoHash
   (JNIEnv *e, jclass cl, jstring f)
 {
     
@@ -687,7 +738,7 @@ JNIEXPORT jobject JNICALL Java_pHash_videoHash
 }
 #endif
 #ifdef HAVE_AUDIO_HASH
-JNIEXPORT jobject JNICALL Java_pHash_audioHash
+JNIEXPORT jobject JNICALL Java_org_pHash_pHash_audioHash
   (JNIEnv *e, jclass cl, jstring f)
 {
 	jintArray ret = NULL;

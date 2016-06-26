@@ -10,7 +10,6 @@ public class BMBImageHash extends ImageHash {
 
 	private byte[] hash;
 
-	@Override
 	public String toString() {
 		BigInteger bigInteger = new BigInteger(hash);
 		return bigInteger.toString(2);

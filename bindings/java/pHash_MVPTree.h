@@ -12,7 +12,7 @@ extern "C" {
  * Method:    create
  * Signature: ([LHash;)Z
  */
-JNIEXPORT jboolean JNICALL Java_MVPTree_create
+JNIEXPORT jboolean JNICALL Java_org_pHash_MVPTree_create
   (JNIEnv *, jobject, jobjectArray);
 
 /*
@@ -20,7 +20,7 @@ JNIEXPORT jboolean JNICALL Java_MVPTree_create
  * Method:    query
  * Signature: (LHash;FI)[LHash;
  */
-JNIEXPORT jobjectArray JNICALL Java_MVPTree_query
+JNIEXPORT jobjectArray JNICALL Java_org_pHash_MVPTree_query
   (JNIEnv *, jobject, jobject, jfloat, jfloat, jint);
 
 /*
@@ -28,7 +28,7 @@ JNIEXPORT jobjectArray JNICALL Java_MVPTree_query
  * Method:    add
  * Signature: ([LHash;)Z
  */
-JNIEXPORT jboolean JNICALL Java_MVPTree_add
+JNIEXPORT jboolean JNICALL Java_org_pHash_MVPTree_add
   (JNIEnv *, jobject, jobjectArray);
 
 #ifdef __cplusplus

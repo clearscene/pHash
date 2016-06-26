@@ -12,23 +12,24 @@ extern "C" {
  * Method:    videoHash
  * Signature: (Ljava/lang/String;)LVideoHash;
  */
-JNIEXPORT jobject JNICALL Java_pHash_videoHash
+JNIEXPORT jobject JNICALL Java_org_pHash_pHash_videoHash
   (JNIEnv *, jclass, jstring);
 
+#ifdef HAVE_AUDIO_HASH
 /*
  * Class:     pHash
  * Method:    audioHash
  * Signature: (Ljava/lang/String;)LAudioHash;
  */
-JNIEXPORT jobject JNICALL Java_pHash_audioHash
+JNIEXPORT jobject JNICALL Java_org_pHash_pHash_audioHash
   (JNIEnv *, jclass, jstring);
-
+#endif
 /*
  * Class:     pHash
  * Method:    dctImageHash
  * Signature: (Ljava/lang/String;)LDCTImageHash;
  */
-JNIEXPORT jobject JNICALL Java_pHash_dctImageHash
+JNIEXPORT jobject JNICALL Java_org_pHash_pHash_dctImageHash
   (JNIEnv *, jclass, jstring);
 
 /*
@@ -36,7 +37,7 @@ JNIEXPORT jobject JNICALL Java_pHash_dctImageHash
  * Method:    mhImageHash
  * Signature: (Ljava/lang/String;)LMHImageHash;
  */
-JNIEXPORT jobject JNICALL Java_pHash_mhImageHash
+JNIEXPORT jobject JNICALL Java_org_pHash_pHash_mhImageHash
   (JNIEnv *, jclass, jstring);
 
 /*
@@ -44,7 +45,7 @@ JNIEXPORT jobject JNICALL Java_pHash_mhImageHash
  * Method:    textHash
  * Signature: (Ljava/lang/String;)LTextHash;
  */
-JNIEXPORT jobject JNICALL Java_pHash_textHash
+JNIEXPORT jobject JNICALL Java_org_pHash_pHash_textHash
   (JNIEnv *, jclass, jstring);
 
 /*
@@ -52,31 +53,34 @@ JNIEXPORT jobject JNICALL Java_pHash_textHash
  * Method:    imageDistance
  * Signature: (LImageHash;LImageHash;)D
  */
-JNIEXPORT jdouble JNICALL Java_pHash_imageDistance
+JNIEXPORT jdouble JNICALL Java_org_pHash_pHash_imageDistance
   (JNIEnv *, jclass, jobject, jobject);
 
+#ifdef HAVE_AUDIO_HASH
 /*
  * Class:     pHash
  * Method:    audioDistance
  * Signature: (LAudioHash;LAudioHash;)D
  */
-JNIEXPORT jdouble JNICALL Java_pHash_audioDistance
+JNIEXPORT jdouble JNICALL Java_org_pHash_pHash_audioDistance
   (JNIEnv *, jclass, jobject, jobject);
-
+#endif
+  
+#ifdef HAVE_VIDEO_HASH  
 /*
  * Class:     pHash
  * Method:    videoDistance
  * Signature: (LVideoHash;LVideoHash;I)D
  */
-JNIEXPORT jdouble JNICALL Java_pHash_videoDistance
+JNIEXPORT jdouble JNICALL Java_org_pHash_pHash_videoDistance
   (JNIEnv *, jclass, jobject, jobject, jint);
-
+#endif
 /*
  * Class:     pHash
  * Method:    textDistance
  * Signature: (LTextHash;LTextHash;)I
  */
-JNIEXPORT jint JNICALL Java_pHash_textDistance
+JNIEXPORT jint JNICALL Java_org_pHash_pHash_textDistance
   (JNIEnv *, jclass, jobject, jobject);
 
 /*
@@ -84,7 +88,7 @@ JNIEXPORT jint JNICALL Java_pHash_textDistance
  * Method:    pHashInit
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_pHash_pHashInit
+JNIEXPORT void JNICALL Java_org_pHash_pHash_pHashInit
   (JNIEnv *, jclass);
 
 /*
@@ -92,7 +96,7 @@ JNIEXPORT void JNICALL Java_pHash_pHashInit
  * Method:    cleanup
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_pHash_cleanup
+JNIEXPORT void JNICALL Java_org_pHash_pHash_cleanup
   (JNIEnv *, jclass);
 
 #ifdef __cplusplus

@@ -1,3 +1,5 @@
+package org.pHash;
+
 public abstract class Hash
 {
 	protected String filename;
