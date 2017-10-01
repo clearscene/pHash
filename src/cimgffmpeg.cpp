@@ -431,8 +431,8 @@ float fps(const char *filename)
         if(videoStream==-1)
 	    return -1; // Didn't find a video stream
 	
-	int num = (pFormatCtx->streams[videoStream]->r_frame_rate).num;
-	int den = (pFormatCtx->streams[videoStream]->r_frame_rate).den;
+	int num = (pFormatCtx->streams[videoStream]->avg_frame_rate).num;
+	int den = (pFormatCtx->streams[videoStream]->avg_frame_rate).den;
 	result = num/den;
 
 	avformat_close_input(&pFormatCtx);
