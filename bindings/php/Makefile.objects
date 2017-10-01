@@ -1,0 +1,8 @@
+pHash.lo: /home/eklinger/pHash/trunk/bindings/php/pHash.cpp
+	$(LIBTOOL) --mode=compile $(CXX)  -I. -I/home/eklinger/pHash/trunk/bindings/php $(COMMON_FLAGS) $(CXXFLAGS_CLEAN) $(EXTRA_CXXFLAGS)  -c /home/eklinger/pHash/trunk/bindings/php/pHash.cpp -o pHash.lo 
+$(phplibdir)/pHash.la: ./pHash.la
+	$(LIBTOOL) --mode=install cp ./pHash.la $(phplibdir)
+
+./pHash.la: $(shared_objects_pHash) $(PHASH_SHARED_DEPENDENCIES)
+	$(LIBTOOL) --mode=link $(CC) $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS) $(LDFLAGS) -o $@ -export-dynamic -avoid-version -prefer-pic -module -rpath $(phplibdir) $(EXTRA_LDFLAGS) $(shared_objects_pHash) $(PHASH_SHARED_LIBADD)
+

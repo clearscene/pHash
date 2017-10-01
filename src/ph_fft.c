@@ -23,7 +23,7 @@
 */
 
 
-#include "config.h"
+
 #include "ph_fft.h"
 
 complex double polar_to_complex(const double r, const double theta)
