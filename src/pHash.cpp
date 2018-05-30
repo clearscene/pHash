@@ -394,7 +394,7 @@ int ph_dct_imagehash(const char* file,ulong64 &hash){
     hash = 0x0000000000000000;
     for (int i=0;i< 64;i++){
 	float current = subsec(i);
-        if (current > median)
+        if (current >= median)
 	    hash |= one;
 	one = one << 1;
     }
